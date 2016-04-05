@@ -1,0 +1,490 @@
+<html>
+<head>
+<title>Interpreters</title>
+<link rel="stylesheet" type="text/css" href="interpreters.css" />
+</head>
+<body>
+<div id="menu">
+<br/><a href="#Assert">Assert</a>
+<br/><a href="#TableExpression">TableExpression</a>
+<br/><a href="#Definition">Definition</a>
+<br/><a href="#TableModification">TableModification</a>
+<br/><a href="#LeftOuter">LeftOuter</a>
+<br/><a href="#Count">Count</a>
+<br/><a href="#DefaultExit">DefaultExit</a>
+<br/><a href="#NativeSQL">NativeSQL</a>
+<br/><a href="#ListVariables">ListVariables</a>
+<br/><a href="#ChangeDirectory">ChangeDirectory</a>
+<br/><a href="#Statistics">Statistics</a>
+<br/><a href="#Export">Export</a>
+<br/><a href="#ExecuteExternalScript">ExecuteExternalScript</a>
+<br/><a href="#Match">Match</a>
+<br/><a href="#ListFiles">ListFiles</a>
+<br/><a href="#FrequencyDifference">FrequencyDifference</a>
+<br/><a href="#Map">Map</a>
+<br/><a href="#Variable">Variable</a></div><div id="main"><div class="interpreter">
+<a name="Assert"></a><h1>Assert</h1>
+
+ <p>
+     Compares a boilersuit expression against a value and takes
+     a specific action if the assertion is not true.
+ </p>
+ <p>
+     Any syntax or fatal error occurring during assertion will be handled as a
+     fatal error and the script will be stopped. Assertion will be automatically
+     false.
+ </p>
+ <h2>Syntax</h2>
+ <p class="syntax">
+     <b>ASSERT</b> <i>{bs-expression}</i> <b>=</b> <i>{value}</i> <b>ELSE</b> <i>{action}</i>
+ <p/>
+ <p>
+     <span class="syntax"><i>{action}</i></span> may be may be either <span class="syntax"><b>STOP</b></span> or <span class="syntax"><b>WARN</b></span>
+ </p>
+
+ <h2>Special features</h2>
+ <ul>
+     <li>If {bs-expression}'s result is a table or view, the first column of the first row will be compared to the expected value</li>
+ </ul>
+ <h2>Examples</h2>
+ <pre>
+ -- stop script if mytable has more or less than 3 rows
+ ASSERT #mytable = 3 ELSE STOP;
+ </pre>  <pre>
+ -- the previous one is equivalent to...
+ ASSERT SELECT COUNT(*) FROM mytable = 3 ELSE STOP
+  </pre>  <pre>
+ -- ...but it could be anything (here we would check first col of first row):
+ ASSERT mytable = 3 ELSE STOP
+  </pre>
+ </div><div class="interpreter">
+<a name="TableExpression"></a><h1>TableExpression</h1>
+
+ <p>
+ This is to interpret BS's shorthand notation for SQL queries
+ </p>
+ <h2>Special features</h2>
+ <h3>Attribute qualifiers</h3>
+ <p>
+   Any given attribute in the brackets can be further qualified to filter it or to sort by it:
+ <pre>
+ -- this
+ customers(id, email{LIKE %co.uk, ASC});
+
+ -- is equivalent to:
+ SELECT id, email FROM customers WHERE email LIKE '%.co.uk' ORDER BY email ASC;
+ </pre> </p>
+ <h3>Pre-processing functions (bsfXXX)</h3>
+ <p>
+ In addition, the concept of a "pre-processing" function is introduced, which will pre-process specific
+ columns of a source table in certain ways. The pre-processing can be done using the following functions:
+ <table>
+ <tr><th>Function</th><th>Purpose</th></tr>
+ <tr>
+ <td>bsfMagicDate</td>
+ <td>Tries to recognize a date expression from various formats into the BS default format MM.dd.yyyy.
+ Works even if the formats in the source data vary from row
+ to row. For unrecognized expressions, a warning will be shown.
+ <pre>
+ -- checking against common formats
+ transformed := source(*, magicDate(MYDATE) AS STANDARDIZED_MY_DATE);
+              </pre> If a preferred set of allowed formats should be used, they can be added as arguments:
+ <pre>
+ -- checking against y-m-d and y.m.d:
+ transformed := source(*, magicDate(MYDATE, y-m-d, y.m.d[,...]) AS STANDARDIZED_MY_DATE);
+              </pre> </td>
+ </tr>
+ <tr>
+ <td>bsfFormatNumber</td>
+ <td>Constructs a string using a pre-existing number in a certain way often useful to construct artificial IDs
+ for things. Lets assume we have a table with id's
+ <pre>id
+ -----
+ 1
+ 239
+ 4000
+ </pre> Then, we may want to construct id's of uniform length like so:
+ <pre>
+ result := table(id, formatNumber(id, A-DDDD) AS NEW_ID);
+
+ -- Result will be as follows:
+ id       NEW_ID
+ ----     -----------
+ 1        A-0001
+ 239      A-0239
+ 4000     A-4000
+ </pre> </td>
+ </tr>
+ <tr>
+ <td>bsfSuck</td>
+ <td>"Sucks" out specific patterns from the source data based on a regular expression</td>
+ </tr>
+ <tr>
+ <td>bsfHash</td>
+ <td><a href="https://en.wikipedia.org/wiki/Hash_function">Hashes</a> the source data using the String.hashCode method (probably depends on JVM used to run BS).
+ If the hash value is > 0, an 'X' is added to the hash as a prefix, otherwise and 'Y' - this explains the Xxxxxx resp. Yxxxxx format of the hash result.
+ </td>
+ </tr>
+ </table>
+ </p>
+ <ul>
+ <li>copy the result of an expression to a table</li>
+ <li>import a file into a table</li>
+ </ul>
+ </p>
+ <p>
+ The expression can be on of the following:
+ <ul>
+ <li>the name of an other, existing table or view (which will be copied to the assignment table)</li>
+ <li>the result of a <a href="#TableExpression">TableExpression</a>, which is a special short notation for certain SQL queries</li>
+ <li>a native SQL query</li>
+ <li>in the case of an import, a filename with or without wildcards in it</li>
+ </ul>
+ </p>
+ <h2>Syntax</h2>
+ <p class="syntax">
+ <i>[new_table_name]</i><b>:=</b><i>filename</i> | <i>table-name</i> | <i>table-expression</i> | <i>native-sql-expression</i> | <i>wildcards</i>
+ </p>
+ <h2>Examples</h2>
+ The most common and simple case is a short-hand notation for a SELECT statement:
+ <pre>
+ mytable(a,*)        -- equivalent to SELECT a,* FROM mytable
+ </pre>
+ </div><div class="interpreter">
+<a name="Definition"></a><h1>Definition</h1>
+
+ <p>
+ The definition interpreter is probably the most frequently used in any BS script; it is used for two purposes:
+ <ul>
+     <li>copy the result of an expression to a table</li>
+     <li>import a file into a table</li>
+ </ul>
+ </p>
+ <p>
+     The expression can be on of the following:
+     <ul>
+         <li>the name of an other, existing table or view (which will be copied to the assignment table)</li>
+         <li>the result of a <a href="#TableExpression">TableExpression</a>, which is a special short notation for certain SQL queries</li>
+         <li>a native SQL query</li>
+         <li>in the case of an import, a filename with or without wildcards in it</li>
+     </ul>
+ </p>
+ <h2>Syntax</h2>
+ <p class="syntax">
+ <i>[new_table_name]</i><b>:=</b><i>filename</i> | <i>table-name</i> | <i>table-expression</i> | <i>native-sql-expression</i> | <i>wildcards</i>
+ </p>
+ <h2>Examples</h2>
+ <pre>
+ new_table_name := select from existing_table_name;     -- sql
+ new_table_name := file.csv;                              -- import file
+ := file.csv;                                             -- import file, give table name automatically (will be file_csv)
+ := file*.csv;                                            -- import list of files
+ :=                                                       -- import all files in directory (eq to :=)
+ </pre>
+ </div><div class="interpreter">
+<a name="TableModification"></a><h1>TableModification</h1>
+
+ <p>
+   Short notations for Creating/Dropping a table
+  </p>
+ <h2>Syntax</h2>
+ Create Table
+ <p class="syntax">
+ +tablename([*primary_key], attribute_1, ..., attribue_n);
+ </p>
+ Drop Table
+ <p class="syntax">
+ -tablename;
+ </p>
+ <h2>Examples</h2>
+   <pre>
+ +mytable(*id, attribute1, attribute2); -- create
+ -mytable; -- drop
+  </pre></p>
+ </div><div class="interpreter">
+<a name="LeftOuter"></a><h1>LeftOuter</h1>
+
+ <p>
+ Imagine you have mycompanies and allcompanies and you want to look up the allcompanies records for all mycompanies.
+ Some of the mycompanies will have allcompanies records corresponding, others won’t.
+ You want to see those that have, with all the extra information from allcompanies.
+ You want also to see those that do not have a correspondence at the same time.
+ <p/>
+ <p>A way to do this in SQL is a <b>left outer join</b>  This is what BS left outer
+ does for you:
+ </p>
+ <h2>Syntax</h2>
+ <p class="syntax">[result :=] left-table(left-key-attribute) <b>-></b> companylist(right-key-attribute);</p>
+ <h2>Examples</h2>
+ <pre>
+ exactmatch := ourcompanies(name)->companylist(name);
+ </pre> <p/>
+ </div><div class="interpreter">
+<a name="Count"></a><h1>Count</h1>
+
+ Counts the number of rows for a given variable.
+ <h2>Syntax</h2>
+ <p class="syntax">
+ #table-name[(where-clause)]
+ </p>
+ <h2>Examples</h2>
+ <p>
+ <pre>#table;</pre> <pre>#mytable(attr1 like 'some value');</pre> <pre>#cars(serialnumber = 12345);</pre> </p>
+ </div><div class="interpreter">
+<a name="DefaultExit"></a><h1>DefaultExit</h1>
+
+ Closes the application.
+ <p/>
+ Usage:
+ exit
+ <p/>
+ </div><div class="interpreter">
+<a name="NativeSQL"></a><h1>NativeSQL</h1>
+
+ <p>BoilerSuit understands a subset of the native SQL as long as it is understood by the underlying database system.</p>
+ <p>Currently, the following commands are supported:
+
+     <ul>
+         <li>SELECT</li>
+         <li>CREATE TABLE [AS]</li>
+         <li>DELETE</li>
+         <li>INSERT</li>
+         <li>UPDATE</li>
+     </ul>
+     </p>
+ <h2>Syntax</h2>
+ <p class="syntax">[result :=] sql-statement</p>
+ <h2>Samples</h2>
+ <pre>SELECT FROM mytable;</pre> FROM mytable WHERE x = 2;</pre>
+ </div><div class="interpreter">
+<a name="ListVariables"></a><h1>ListVariables</h1>
+
+ <p>Lists all tables</p>
+ <h2>Syntax</h2>
+ <p class="syntax">?</p>
+ </div><div class="interpreter">
+<a name="ChangeDirectory"></a><h1>ChangeDirectory</h1>
+
+ <p>
+  Change or prints out current working directory
+ </p>
+ <p>
+
+ </p>
+ <h2>Syntax</h2>
+ <p>
+     CD {path};   -- to change directory
+     CD;          -- to print directory
+ </p>
+ <h2>Special features</h2>
+ <p>
+     Depending on <b>operating system,</b> syntax of path may vary. On Windows, backslash
+     has been seen working; on linux slash.
+ </p>
+ <p>
+     After (successful) change of working directory, Boilersuit will automatically
+     open the data.db file as current database.
+ </p>
+ </div><div class="interpreter">
+<a name="Statistics"></a><h1>Statistics</h1>
+
+ <p>Counts the occurrence of selected attribute in the table, shows if there are any duplicates.
+ <p/>
+ <h2>Syntax</h2>
+ <p class="syntax">?table_name(attribute)</p>
+ </div><div class="interpreter">
+<a name="Export"></a><h1>Export</h1>
+
+ <p>
+ Exports tables into various supported file types, currently csv, xls, xlsx
+ <p/>
+ <h2>Syntax</h2>
+ variablename =: [filename [delim(delimcharacter)][quote(quotecharacter)][replacedelim(replacestring)][replacequote(replacestring)]]<br/>
+ Extensions will be interpreted as follows:
+ <ul>
+     <li>csv - exports as csv with default options</li>
+     <li>xls - exports as Microsoft (R) Excel 1997-2003</li>
+     <li>xlsx - exports as Microsoft (R) Excel</li>
+ </ul>
+ <h2>Samples</h2>
+ <pre>-- as simply as it can get - exports ALL variables
+ </pre> <pre>=:
+ </pre> <br/>
+ <pre>existing_table_name =: file_name.xml;
+ </pre> <pre>existing_table_name =: file_name.xls;
+ </pre> <pre>existing_table_name =: file_name.xlsx;
+ </pre> <pre>existing_table_name =: file_name.csv;
+ </pre> <pre>existing_table_name =: file_name.csv with delim(";"), quote("\'"), replacedelim(","), replacequote("_");
+ </pre> <h3>On the use of delim, quote, etc. (Simple)</h3>
+ <p>To export using ';' as a delimitator (instead of the default ','), you would use</p>
+ <pre>existing_table_name =: file_name.csv with delim(";")
+ </pre> <p>You could also use tabs, like so:</p>
+ <pre>existing_table_name =: file_name.csv with delim("\t")
+ </pre> <p>If you are in conflict with values using the desired symbols, use</p>
+ <pre>-- replace e.g. O'Brien by O\'Brien not to come in conflict with quotes '
+ </pre> <pre>existing_table_name =: file_name.csv with delim(";"), quote("'"), replacequote("\\'")
+ </pre> <h3>On the use of delim, quote, etc. (Advanced)</h3>
+ <ul>
+ <li>Argument of function delim() will be used as a delimitator to separate the strings in csv file.</li>
+ <li>Argument of function quote() will be used as a quote to wrap the strings in csv file.</li>
+ <li>Argument of function replacedelim() will be used for replace all of occurrences of delimitator in exported strings.</li>
+ <li>Argument of function replacequote() will be used for replace all of occurrences of quote in exported strings.</li>
+ </ul>
+ <p/>
+ </div><div class="interpreter">
+<a name="ExecuteExternalScript"></a><h1>ExecuteExternalScript</h1>
+
+ <p>
+ Reads in a text file and interprets it line per line as a BoilerSuit script. Commands have to be separated by ; and
+ comments begin with --
+ <p/>
+ <h2>Syntax</h2>
+ <p class="syntax">
+ execute("filename");
+ </p>
+ <h2>Example</h2>
+ execute("scriptname.bs")
+ <p/>
+ </div><div class="interpreter">
+<a name="Match"></a><h1>Match</h1>
+
+ <p>
+ Fuzzy matching two data sets based on an attribute from both data sets. For instance, you may have table1 with "name" and table2 with "name".
+ Result would be a new table containing all entries where table1's name is similar to table2's name. Various text similarity methods are used
+ to determine the quality of the match (currently the <a href="https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance">Jaro/Jaro-Winkler Distance</a>
+ and <a href="https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient">Dice's coefficient</a>
+ <p/>
+ <h2>Syntax</h2>
+ <p class="syntax">
+ <b>[result_table_prefix :=] MATCH</b> <i>left_table</i><b>(</b><i>left_attribute</i><b>)</b> <b>ON</b> <i>right_table</i><b>(</b><i>right_attribute</i><b>)</b> [<b>WITH</b> <i>with-clause</i>]
+ <p>
+     The with clause may contain the following parameters:
+     <table>
+         <tr>
+             <th>Parameter</th>
+             <th>Result</th>
+         </tr>
+         <tr>
+             <td class="syntax"><b>DISPLAYLEFT(</b><i>attribute_1</i>, ..., <i>attribute_n</i><b>)</b></td>
+             <td>
+                 Will show all indicated attributes of the left table in the result table of the match
+                 (unless explicitly indicated, only match attributes plus match info will be shown but no other attributes,
+                 to keep the result table clean)
+             </td>
+         </tr>
+         <tr>
+             <td class="syntax"><b>DISPLAYRIGHT(</b><i>attribute_1</i>, ..., <i>attribute_n</i><b>)</b></td>
+             <td>
+                 Will show all indicated attributes of the right table in the result table of the match
+                 (unless explicitly indicated, only match attributes plus match info will be shown but no other attributes,
+                 to keep the result table clean)
+             </td>
+         </tr>
+         <tr>
+             <td class="syntax"><b>THRESHOLD(</b><i>value</i><b>)</b></td>
+             <td>
+                 Will ignore all "matches" below a certain threshold. If at least one of the applied similarity
+                 measures is above (greater than) the threshold indicated, the result match will appear, otherwise
+                 it will not. <b>Note that there is no default threshold, so using this argument is important
+                 to prevent too many match results.</b>
+             </td>
+         </tr>
+         <tr>
+             <td class="syntax"><b>SUPPRESSSECONDBEST
+             <td>
+                 For most records, there will be more than one match, and they all vary by quality. If the best
+                 match is just enough, then this option can be used to restrict the result to the best matches per
+                 left record against right record.
+             </td>
+         </tr>*
+     </table>
+ </p>
+ </p>
+ Usage:
+ MATCH table_x(attribute1) ON table_y(attribute2)
+ MATCH table_x(attribute1) ON table_y(attribute2) WITH threshold(0.9)
+ MATCH table_x(attribute1, attribute2) ON table_y(attribute3, attribute4)
+ ______________________________________________________________________________
+ THRESHOLD is used for different fuzzy match strategies, such as Jaro, Dice etc.
+ <p/>
+ </div><div class="interpreter">
+<a name="ListFiles"></a><h1>ListFiles</h1>
+
+ <p>Displays a list of files in the working directory.</p>
+
+ <h2>Syntax</h2>
+ <p class="syntax">ls</p>
+
+ <h2>Examples</h2>
+ <pre>
+ ls
+ </pre> <pre>
+ ls.csv
+ </pre> <p/>
+ </div><div class="interpreter">
+<a name="FrequencyDifference"></a><h1>FrequencyDifference</h1>
+
+ <p>
+     Analyse how often a value occurs accross two tables.
+ </p>
+ <h2>Syntax</h2>
+ <p class="syntax">[result := ]<i>left-table</i><b>.</b><i>left-attribute</i><b> ./. </b><i>right-table</i><b>.</b><i>right-attribute</i></p>
+ <h2>Example</h2>
+ <pre>
+  official.claim_id ./. previous.claim_id;
+ </pre> <p>
+     This will produce something like
+     <table>
+         <tr>
+             <th>claim_id_or_claim_id</th>
+             <th>official_count</th>
+             <th>previous_count</th>
+         </tr>
+         <tr>
+             <td>C123</td>
+             <td>100</td>
+             <td>50</td>
+         </tr>
+         <tr>
+             <td>C234</td>
+             <td>0</td>
+             <td>50</td>
+         </tr>
+     </table>
+ </p>
+ </div><div class="interpreter">
+<a name="Map"></a><h1>Map</h1>
+
+ <p>
+     To map all occurences of a value in a specific attribute of a table to a target value as defined
+     in the mapping
+ <p/>
+ <h2>Syntax</h2>
+ <p class="syntax">
+ <b>MAP</b> <i>table</i><b>(</b><i>>attribute</i><b>)</b> <b>USE</b> <i>mapping</i>
+ </p>
+ <p>
+     where mapping is a table with columns <i>source</i> and <i>target</i>
+ </p>
+
+ <h2>Example</h2>
+ <pre>
+ MAP cars(cartype) USE mapping
+ </pre> <p>
+ Mapping table should look like:
+ "source", "target"
+ "mercedes", "Boring_German_Car"
+ "lada", "Racing_Machine"
+ All occurrences of value 'mercedes' in <i>cartype</i>will be replaced with 'Boring_German_Car' and all occurrences of value
+ 'lada' will be replaced by 'Racing_Machine'.
+ </p>
+ </div><div class="interpreter">
+<a name="Variable"></a><h1>Variable</h1>
+
+ Displays the records from selected variable (variables are connected with tables).
+ <p/>
+ Usage:
+ variable_name
+ <p/>
+ </div></div></body>
+</html>
