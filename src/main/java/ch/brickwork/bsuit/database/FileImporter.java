@@ -442,7 +442,6 @@ public class FileImporter implements Iterable<Record> {
 
                     // end of line?
                     if(i == line.length() - 1) {
-                  ///      System.out.println("ççç: start: " + recordStart + ", stop: " + recordStop + ", linel: " + line.length());
                         rawValuesList.add(line.substring(recordStart, recordStop));
                         recordStart = recordStop = -1;
                     }
@@ -460,7 +459,6 @@ public class FileImporter implements Iterable<Record> {
                         if(recordStart != -1) {
                             if(recordStop == -1)
                                 recordStop = i;
-              ///              System.out.println("ççç: start: " + recordStart + ", stop: " + recordStop + ", linel: " + line.length());
                             rawValuesList.add(line.substring(recordStart, recordStop));
                             recordStart = recordStop = -1;
                         }
@@ -480,14 +478,12 @@ public class FileImporter implements Iterable<Record> {
                 else if(i == line.length() - 1) {
                     // but still within brackets -> capture until eol but mark
                     if(withinBrackets) {
-             ///           System.out.println("ççç: start: " + recordStart + ", stop: " + (i+1) + ", linel: " + line.length());
                         rawValuesList.add(line.substring(recordStart, i + 1) + "\n");
                         recordStart = recordStop = -1;
                     }
 
                     // simply capture until eol
                     else {
-               ///         System.out.println("ççç: start: " + recordStart + ", stop: " + (i+1) + ", linel: " + line.length());
                         rawValuesList.add(line.substring(recordStart, i + 1));
                         recordStart = recordStop = -1;
                     }
@@ -517,12 +513,7 @@ public class FileImporter implements Iterable<Record> {
 
         // return array or null
         if (rawValuesList.size() > 0) {
-     ///       System.out.println("ççç: " + rawValuesList.size());
-            String[] rawValues = new String[rawValuesList.size()];
-            //rawValues = rawValuesList.toArray(rawValuesList);
             return rawValuesList.toArray(new String[rawValuesList.size()]);
-           // String[] mock = { "abcd", "ab1d", "ab2d", "a3cd", "ab3d", "ab8d", "ab9d", "ab0d", "ascd", "awcd", "abed", "abwd", "abrd", "abtd", "azcd", "abud", "aicd", "alcd", "abkd", "abjd", "abhd", "abcg", "abfd", "abcd", "abcd", "abcs", "abad", "aycd", "abxd", "abcc", "axxd", "ayyd" };
-            //return mock;
         } else {
             return null;
         }
