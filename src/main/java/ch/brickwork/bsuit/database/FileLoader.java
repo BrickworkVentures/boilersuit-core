@@ -44,9 +44,7 @@ public class FileLoader {
             final Variable variable = database.createOrReplaceVariableAndTable(variableName, desc, fileName, columnNames, null);
             context.getLog().info("Load file \"" + fileName + "\" as variable \"" + variableName + "\"...");
 
-
             List<Record> records = new ArrayList<>();
-
             int i = 0;
             try {
                 for (Record record : fileImporter) {
@@ -64,8 +62,9 @@ public class FileLoader {
                         records.add(record);
                     }
                 }
-            } catch (StringIndexOutOfBoundsException e) {
-                context.getLog().err("Problem at " + i);
+            } catch (Exception e) {
+                e.printStackTrace();
+                context.getLog().err("Unknown but serious problem at row " + i);
             }
 
             // write remainder

@@ -32,8 +32,24 @@ public class FileImporterTest {
                 "1101376,24893,1,Ms.,Magnokova,MAGNOKOVA,Ana,,,\"Magnokova, Ana \"\"the best\"\"\",\"MAGNOKOVA, EVA\",Eva,1006866,English,1006866,English,1,Person,30/04/2013 10:06:09.000000,PI,05/09/2014 13:30:14.000000,PI,20140305235129,A_CODE,,,,,,,,,ABCC010,active,,,FALSE,,,FALSE,,123456,99,Not rated,FALSE,\"Europe, Middle East & Africa\",,,,,FALSE,FALSE,FALSE,23/05/2015 18:42:00.000000,,,FALSE,,,,");
 
         File f4 = tc.createFile("another3.csv");
-        FileIOUtils.overwriteFile(f3.getAbsolutePath(), "ID,ABC_CLIENT_ID,ABC_CLIENT_TITLE_CODE,ABC_CLIENT_TITLE_NAME,ABC_NAME_1_LAST_NAME,ABC_NAME_1_LAST_NAME_NORM,ABC_NAME_2_FIRST_NAME,ABC_NAME_3_MIDDLE_NAME,CLIENT_NAME,FULL_NAME,FULL_NAME_NORM,ABC_NAME_4_NICK_NAME,BUSINESS_KURZUAGE_ISO_CODE,BUSINESS_KURZUAGE_NAME,NATIVE_KURZUAGE_ISO_CODE,NATIVE_KURZUAGE_NAME,ABC_CLIENT_TYPE_CODE,ABC_CLIENT_TYPE_NAME,ABC_CREATED_DATE,ABC_CREATED_BY,ABC_UPDATED_DATE,ABC_UPDATED_BY,CRM_MODIFIED_ON,CRM_MODIFIED_BY,MAIN_INDUSTRY_SEGMENT_CODE,MAIN_INDUSTRY_SEGMENT,MAIN_INDUSTRY_SEGMENT_DESC,CARE_TEAM_CODE,CARE_TEAM,ABC_DATA_QUALITY_STATUS,ABC_DATA_QUALITY_VALUE,LIQUIDATION_DATE,STATUS_CODE,STATUS_NAME,FINANCIAL_STATUS_CODE,FINANCIAL_STATUS_NAME,LEGAL_ENTITY_FLAG,ACADEMIC_DEGREE_CODE,ACADEMIC_DEGREE_NAME,GOODNESS,LOCAL_SPELLING,USER_ID,SEGMENT_CATEGORY_CODE,SEGMENT_CATEGORY_NAME,CE_CLIENT,DIVISON,PROFESSION,MILITARY_TITLE_CODE,MILITARY_TITLE_NAME,UPID,COFFEE_FLAG,DUPLICATE_FLAG,RESTRICTED_USE_ENTITY_FLAG,ABC_INTERFACE_UPDATE_TIMESTAMP,CLIENT_BEAUTY_FACTOR_STAT_DESC,CLIENT_BEAUTY_FACTOR_STAT_CODE,BASE_CLIENT_INDICATOR,PAYMENT_TERM_CODE,PAYMENT_TERM,SEGMENT_SUB_CATEGORY_CODE,SEGMENT_SUB_CATEGORY_NAME\n" +
+        FileIOUtils.overwriteFile(f4.getAbsolutePath(), "ID,ABC_CLIENT_ID,ABC_CLIENT_TITLE_CODE,ABC_CLIENT_TITLE_NAME,ABC_NAME_1_LAST_NAME,ABC_NAME_1_LAST_NAME_NORM,ABC_NAME_2_FIRST_NAME,ABC_NAME_3_MIDDLE_NAME,CLIENT_NAME,FULL_NAME,FULL_NAME_NORM,ABC_NAME_4_NICK_NAME,BUSINESS_KURZUAGE_ISO_CODE,BUSINESS_KURZUAGE_NAME,NATIVE_KURZUAGE_ISO_CODE,NATIVE_KURZUAGE_NAME,ABC_CLIENT_TYPE_CODE,ABC_CLIENT_TYPE_NAME,ABC_CREATED_DATE,ABC_CREATED_BY,ABC_UPDATED_DATE,ABC_UPDATED_BY,CRM_MODIFIED_ON,CRM_MODIFIED_BY,MAIN_INDUSTRY_SEGMENT_CODE,MAIN_INDUSTRY_SEGMENT,MAIN_INDUSTRY_SEGMENT_DESC,CARE_TEAM_CODE,CARE_TEAM,ABC_DATA_QUALITY_STATUS,ABC_DATA_QUALITY_VALUE,LIQUIDATION_DATE,STATUS_CODE,STATUS_NAME,FINANCIAL_STATUS_CODE,FINANCIAL_STATUS_NAME,LEGAL_ENTITY_FLAG,ACADEMIC_DEGREE_CODE,ACADEMIC_DEGREE_NAME,GOODNESS,LOCAL_SPELLING,USER_ID,SEGMENT_CATEGORY_CODE,SEGMENT_CATEGORY_NAME,CE_CLIENT,DIVISON,PROFESSION,MILITARY_TITLE_CODE,MILITARY_TITLE_NAME,UPID,COFFEE_FLAG,DUPLICATE_FLAG,RESTRICTED_USE_ENTITY_FLAG,ABC_INTERFACE_UPDATE_TIMESTAMP,CLIENT_BEAUTY_FACTOR_STAT_DESC,CLIENT_BEAUTY_FACTOR_STAT_CODE,BASE_CLIENT_INDICATOR,PAYMENT_TERM_CODE,PAYMENT_TERM,SEGMENT_SUB_CATEGORY_CODE,SEGMENT_SUB_CATEGORY_NAME\n" +
                 "1101376,24893,1,Ms.,Magnokova,MAGNOKOVA,Ana,,,\"Magnokova, Ana \"\"the best\"\"\",\"MAGNOKOVA, EVA\",Eva,1006866,English,1006866,English,1,Person,30/04/2013 10:06:09.000000,PI,05/09/2014 13:30:14.000000,PI,20140305235129,A_CODE,,,,,,,,,ABCC010,active,,,FALSE,,,FALSE,,123456,99,Not rated,FALSE,\"Europe, Middle East & Africa\",,,,,FALSE,FALSE,FALSE,23/05/2015 18:42:00.000000,,,FALSE,,,,");
+
+        File f5 = tc.createFile("test4.csv");
+        FileIOUtils.overwriteFile(f5.getAbsolutePath(), "'col1', 'col2', 'col3', 'col4'\n" +
+                "'val11', 'val12', 'val13', 'val14'\n" +
+                "'val21', 'val22', 'val23', 'val24\nwhich is\ntruncated\n" +
+                "until here'\n" +
+                "'val31', 'val32', 'val33',\n" +
+                "'val41',,,'val44'\n" +
+                "'val51',,,'val54'"
+        );
+
+/*
+        File t = tc.createFile("temp.csv");
+        FileIOUtils.overwriteFile(t.getAbsolutePath(), "");
+*/
+        tc.writeToFile("us-500.csv", tc.getResource("us-500.csv"));
     }
 
     @AfterClass
@@ -87,16 +103,16 @@ public class FileImporterTest {
     public void wildCardAsterix() {
         ProcessingResult pr = tc.processScript(":= test*.csv;");
         tc.getTestLog().log(pr.getResultSummary());
-        assertEquals("1", tc.processScript("#test1_csv").getSingleValue());
-        assertEquals("1", tc.processScript("#test2_csv").getSingleValue());
-        assertEquals("1", tc.processScript("#test3_csv").getSingleValue());
+        assertEquals("wa1", "1", tc.processScript("#test1_csv").getSingleValue());
+        assertEquals("wa2", "1", tc.processScript("#test2_csv").getSingleValue());
+        assertEquals("wa3", "1", tc.processScript("#test3_csv").getSingleValue());
 
         flush();
         pr = tc.processScript("-test1_csv;-test2_csv;-test3_csv;");
         pr = tc.processScript(":= *.csv");
-        assertEquals("1", tc.processScript("#test1_csv").getSingleValue());
-        assertEquals("1", tc.processScript("#test2_csv").getSingleValue());
-        assertEquals("1", tc.processScript("#test3_csv").getSingleValue());
+        assertEquals("wa4", "1", tc.processScript("#test1_csv").getSingleValue());
+        assertEquals("wa5", "1", tc.processScript("#test2_csv").getSingleValue());
+        assertEquals("wa6", "1", tc.processScript("#test3_csv").getSingleValue());
 
         flush();
         pr = tc.processScript("-test1_csv");
@@ -130,7 +146,38 @@ public class FileImporterTest {
         ProcessingResult pr = tc.processScript("emptyLine := emptyLine.csv;");
 
         // check
-        assertEquals(true, tc.getTestLog().isMentionedInWarnLog("Ignored empty line at 3"));
-        assertEquals(2, tc.db().count("emptyLine"));
+        assertEquals("warn", true, tc.getTestLog().isMentionedInWarnLog("Ignored empty line at 3"));
+        assertEquals("count", 2, tc.db().count("emptyLine"));
+    }
+
+    @Test
+    public void lineBreakTest() {
+        tc.flush();
+
+        // read in files
+        ProcessingResult pr = tc.processScript("test4 := test4.csv;");
+
+        List<Record> r = tc.getContext().getDatabase().getAllRecordsFromTableOrView("test4", null, null);
+        assertEquals("1", "Record: col1: val11, col2: val12, col3: val13, col4: val14", r.get(0).toString());
+        assertEquals("2", "Record: col1: val21, col2: val22, col3: val23, col4: val24which istruncateduntil here", r.get(1).toString());
+        assertEquals("3", "Record: col1: val31, col2: val32, col3: val33, col4: ", r.get(2).toString());
+        assertEquals("warning", true, tc.getTestLog().isMentionedInWarnLog("line breaks"));
+    }
+
+    @Test
+    public void us500() {
+        tc.flush();
+        ProcessingResult pr = tc.processScript("u := us-500.csv");
+        assertEquals("count", 500, tc.getContext().getDatabase().count("u"));
+        assertEquals("6th rec", "Record: first_name: Mitsue, last_name: Tollner, company_name: Morlong Associates, address: 7 Eads St, city: Chicago, county: Cook, state: IL, zip: 60632, phone1: 773-573-6914, phone2: 773-924-8565, email: mitsue_tollner@yahoo.com, web: http://www.morlongassociates.com",
+                tc.getContext().getDatabase().getAllRecordsFromTableOrView("u", null, null).get(6).toString());
+    }
+
+
+    public void temp() {
+        tc.flush();
+
+        // read in files
+        ProcessingResult pr = tc.processScript("t := temp.csv");
     }
 }

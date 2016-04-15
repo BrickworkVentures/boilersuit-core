@@ -144,6 +144,7 @@ public class SQLiteDatabase extends AbstractSQLDatabase implements IDatabase, IF
                         result.add(record);
                     }
                 } catch (SQLiteException e) {
+                    e.printStackTrace();
                     log.err(e.getMessage());
                     throw new DatabaseException(e.getMessage());
                 } finally {
@@ -264,6 +265,7 @@ public class SQLiteDatabase extends AbstractSQLDatabase implements IDatabase, IF
 
                     connection.exec("COMMIT");
                 } catch (SQLiteException e) {
+                    e.printStackTrace();
                     throw new DatabaseException(e.getMessage());
                 } finally {
                     if (null != s) {
@@ -276,6 +278,7 @@ public class SQLiteDatabase extends AbstractSQLDatabase implements IDatabase, IF
         try {
             queue.stop(true).join();
         } catch (InterruptedException e) {
+            e.printStackTrace();
             log.err(e.getMessage());
         }
     }

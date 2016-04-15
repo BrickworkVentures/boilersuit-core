@@ -6,6 +6,7 @@ import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.input.BOMInputStream;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -33,10 +34,15 @@ public class FileImporter implements Iterable<Record> {
      */
     private static final String[] DEFAULT_QUOTE_LITERAL_TRANSLATION = {"\"", "\""};
 
-    private String LOG_FILE_PATH;
+    private static final String LINE_BREAK_LITERAL = "<linebreak>";
+
+    private static final int MAX_WARN_COUNT = 100;
+
+    private final static String LOG_FILE_NAME = "boilersuit_import_export.log";
+
+    private String logFilePath;
 
     private static final String DEFAULT_ENCODING = "UTF-8";
-
 
     private final File file;
 
@@ -55,6 +61,8 @@ public class FileImporter implements Iterable<Record> {
     private int rowCount = 0;
 
     private IBoilersuitApplicationContext context;
+
+    private int warnCount = 0;
 
     /**
      * Current Assumption: 1. always with header; 2. only with valid header; 3.
@@ -90,51 +98,72 @@ public class FileImporter implements Iterable<Record> {
                 try {
                     return reader.ready();
                 } catch (IOException e) {
-                    LOG.severe(e.getMessage());
+                    context.getLog().err("IO Problem: " + e.getMessage() + e.getStackTrace());
+                    e.printStackTrace();
                     return false;
                 }
             }
 
             @Override
-            public Record next()
-            {
+            public Record next() {
                 final Record record = new Record();
                 try {
                     boolean gotValidLine = false;
-                    String[] rawValues;
+                    boolean lineNotCompleteBecauseOfLineBreaks = false;
+                    List<String> rawValues = null;
 
                     String line;
+                    String completeLine = "";
                     while (!gotValidLine && (line = reader.readLine()) != null) {
-
-                        rawValues = splitLine(line);
+                        completeLine += line.replaceAll("\n", "");
+                        rawValues = Arrays.asList(splitLine(completeLine));
 
                         // more than 0 values?
                         if (rawValues != null) {
-                            if (rawValues.length > 0) {
+                            if (rawValues.size() > 0) {
 
-                                if(rawValues.length != columnNames.length) {
-                                    // empty line?
-                                    if(rawValues.length == 1 && rawValues[0] != null && rawValues[0].trim().equals("")) {
-                                        context.getLog().warn("Ignored empty line at " + rowCount);
-                                        continue;
-                                    }
+                                // line break?
+                                if(bracket != null && rawValues.get(rawValues.size() - 1).endsWith("\n")) {
+                                    lineNotCompleteBecauseOfLineBreaks = true;
 
-                                    context.getLog().warn("Check Line " + rowCount + "; not same number of values as in header. Check log file. [" + rawValues.length + "/" + columnNames.length + "]");
-                                    appendToLogFile(rawValues.length + "/" + columnNames.length + " values only (row " + rowCount + "): " + line);
+                                    // simply read next line, maybe we are getting complete at some point
+                                    rawValues.set(rawValues.size() - 1, rawValues.get(rawValues.size() - 1).replaceAll("\n", LINE_BREAK_LITERAL));
+
+                                    warn("Check Line " + rowCount + "; there were line breaks in a value (within " + bracket + " brackets), so we took multiple lines together to form one record.");
                                 }
 
-
-                                // ok, then that's valid
-                                gotValidLine = true;
-
-                                for (int i = 0; i < columnNames.length; i++) {
-                                    if (i < rawValues.length) {
-                                        record.put(columnNames[i], unencloseText(rawValues[i]));
+                                else {
+                                    // incomplete or overloaded?
+                                    if (rawValues.size() != columnNames.length) {
+                                        // empty?
+                                        if (rawValues.size() == 1 && rawValues.get(0) != null && rawValues.get(0).trim().equals("")) {
+                                            warn("Ignored empty line at " + rowCount);
+                                            continue;
+                                        } else if (rawValues.size() > columnNames.length) {
+                                            warn("Check Line " + rowCount + "; there were too many values on that line: " + rawValues.size() + "/" + columnNames.length);
+                                        } else {
+                                            if (!lineNotCompleteBecauseOfLineBreaks) {
+                                                warn("Check Line " + rowCount + "; not same number of values as in header. Check log file. [" + rawValues.size() + "/" + columnNames.length + "]");
+                                            }
+                                            appendToLogFile(rawValues.size() + "/" + columnNames.length + " values only (row " + rowCount + "): " + line);
+                                        }
                                     }
-                                    // if less raw values than columns (as per header), just fill up with empty
-                                    // cells at the right side:
-                                    else {
-                                        record.put(columnNames[i], "");
+
+
+                                    // ok, then that's valid
+                                    gotValidLine = true;
+                                    completeLine = "";
+
+                                    for (int i = 0; i < columnNames.length; i++) {
+                                        if (i < rawValues.size()) {
+                                            record.put(columnNames[i], unencloseText(rawValues.get(i)));
+                                        }
+
+                                        // if less raw values than columns (as per header), just fill up with empty
+                                        // cells at the right side:
+                                        else {
+                                            record.put(columnNames[i], "");
+                                        }
                                     }
                                 }
                             }
@@ -143,31 +172,41 @@ public class FileImporter implements Iterable<Record> {
 
                     rowCount++;
                 } catch (IOException e) {
-                    LOG.severe(e.getMessage());
+                    context.getLog().err("IO Problem in next" + e.getMessage() + e.getStackTrace());
+                    e.printStackTrace();
                 }
                 return record;
             }
 
             @Override
-            public void remove()
-            {
+            public void remove() {
             }
         };
+
+    }
+
+    private void warn(String s) {
+        if(warnCount < MAX_WARN_COUNT)
+            context.getLog().warn(s);
+        else if(warnCount == MAX_WARN_COUNT)
+            context.getLog().warn("Too many warnings. If you want to see them all, check the import/export logfile in your folder");
+        warnCount++;
     }
 
     private void initLogFile() {
-        File f = new File(LOG_FILE_PATH);
+        File f = new File(logFilePath);
         if(f.exists())
             f.delete();
         try {
             f.createNewFile();
         } catch (IOException e) {
+            context.getLog().err("IO Problem in init" + e.getMessage() + e.getStackTrace());
             e.printStackTrace();
         }
     }
 
     private void appendToLogFile(String s) {
-        FileIOUtils.overwriteFile(LOG_FILE_PATH, FileIOUtils.readCompleteFile(context.getWorkingDirectory(), LOG_FILE_PATH) + "\n" + s);
+        FileIOUtils.overwriteFile(logFilePath, FileIOUtils.readCompleteFile(context.getWorkingDirectory(), logFilePath) + "\n" + s);
     }
 
     /**
@@ -212,7 +251,7 @@ public class FileImporter implements Iterable<Record> {
      */
     private void init()
     {
-        LOG_FILE_PATH = context.getWorkingDirectory() + "/boilersuit_import_export_context.getLog().txt";
+        logFilePath = context.getWorkingDirectory() + "/" + LOG_FILE_NAME;
         initLogFile();
 
         firstLine = true;
@@ -252,11 +291,11 @@ public class FileImporter implements Iterable<Record> {
                context.getDatabase().cleanColumnNames(columnNames);
             }
         } catch (FileNotFoundException e) {
-            LOG.severe(e.getMessage());
+            context.getLog().err("File not found" + e.getMessage() + e.getStackTrace());
         } catch (UnsupportedEncodingException e) {
-            LOG.severe(e.getMessage());
+            context.getLog().err("Encoding problem" + e.getMessage() + e.getStackTrace());
         } catch (IOException e) {
-            e.printStackTrace();
+            context.getLog().err("IO Problem in init" + e.getMessage() + e.getStackTrace());
         }
     }
 
@@ -310,7 +349,7 @@ public class FileImporter implements Iterable<Record> {
                 rowCount++;
             }
         } catch (IOException e) {
-            LOG.severe(e.getMessage());
+            context.getLog().err("IO Problem in readFirstLine" + e.getMessage() + e.getStackTrace());
         }
     }
 
@@ -318,13 +357,16 @@ public class FileImporter implements Iterable<Record> {
      * splits a line (header or values) into an array of strings. So for example makes { "A", "B" } out of "A,B", "A, B",
      * ""A", "B"", "'A', 'B'", depending on default delimiter and bracket set during initialization
      *
+     * if it is obvious that a line is broken within a bracketed string, a line break (\n) is added to the last element
+     * in the array to "mark" it as a broken entry
+     *
      * @param line of text
      *
      * @return array of strings contains split line
      */
     private String[] splitLine(String line)
     {
-        final List<String> rawValuesList = new ArrayList<>();
+        final ArrayList<String> rawValuesList = new ArrayList<>();
 
         if (bracket == null) {
             String[] split = line.split(commaDelimitator, -1);
@@ -380,35 +422,94 @@ public class FileImporter implements Iterable<Record> {
                 }
             }
         } else {
-            int lastStart = -1;
-            int lastEnclosedAt = -1;
-            boolean defineStartOnNextFoundEnclosed = true;
-            boolean enteredEnclosed = false;
+            int recordStart = 0;
+            int recordStop = -1;
+            boolean withinBrackets = false;
             for (int i = 0; i < line.length(); i++) {
-
-                if(i < 0 || i > line.length() - 1)
-                    LOG.severe("Invalid index in line:\n" + line);
-
+                // bracket
                 if (line.substring(i, i + 1).equals(bracket)) {
-                    enteredEnclosed = !enteredEnclosed;
-                    lastEnclosedAt = i;
-                    if (defineStartOnNextFoundEnclosed) {
-                        lastStart = i + 1;
-                        defineStartOnNextFoundEnclosed = false;
+                    // closing -> finish recording
+                    if(withinBrackets) {
+                        recordStop = i;
+                        withinBrackets = false;
+                    }
+
+                    // opening -> start recording
+                    else {
+                        recordStart = i + 1;
+                        withinBrackets = true;
+                    }
+
+                    // end of line?
+                    if(i == line.length() - 1) {
+                  ///      System.out.println("ççç: start: " + recordStart + ", stop: " + recordStop + ", linel: " + line.length());
+                        rawValuesList.add(line.substring(recordStart, recordStop));
+                        recordStart = recordStop = -1;
                     }
                 }
 
-                if (line.substring(i, i + 1).equals(commaDelimitator) && !enteredEnclosed || i == line.length() - 1) {
-                    // did we press the "record" button already? If so, then stop it now and we got the film in the box!
-                    rawValuesList.add(line.substring(lastStart, lastEnclosedAt));
+                // delim
+                else if (line.substring(i, i + 1).equals(commaDelimitator)) {
+                    // within brackets -> ignore
+                    if(withinBrackets) {
+                        // do nothing, go ahead
+                    }
 
-                    // if not, then we should start the recording machine now:
-                    defineStartOnNextFoundEnclosed = true;
+                    // outside -> capture last recorded value, next column ahead
+                    else {
+                        if(recordStart != -1) {
+                            if(recordStop == -1)
+                                recordStop = i;
+              ///              System.out.println("ççç: start: " + recordStart + ", stop: " + recordStop + ", linel: " + line.length());
+                            rawValuesList.add(line.substring(recordStart, recordStop));
+                            recordStart = recordStop = -1;
+                        }
 
-                    // for the strange case where the delimitor would be at the end of the line
-                    if (lastStart > line.length() - 1) {
-                        context.getLog().warn("Line ignored because delimitor character was at the end of the line!");
-                        return null;
+                        // for subsequent delimiters without values, e.g. "abc,,,,,,def"
+                        else {
+                            rawValuesList.add("");
+                        }
+
+                        // in addition, if we are at line end, add one more value (the one behind the last delim)
+                        if(i == line.length() - 1)
+                            rawValuesList.add("");
+                    }
+                }
+
+                // end of line -> capture
+                else if(i == line.length() - 1) {
+                    // but still within brackets -> capture until eol but mark
+                    if(withinBrackets) {
+             ///           System.out.println("ççç: start: " + recordStart + ", stop: " + (i+1) + ", linel: " + line.length());
+                        rawValuesList.add(line.substring(recordStart, i + 1) + "\n");
+                        recordStart = recordStop = -1;
+                    }
+
+                    // simply capture until eol
+                    else {
+               ///         System.out.println("ççç: start: " + recordStart + ", stop: " + (i+1) + ", linel: " + line.length());
+                        rawValuesList.add(line.substring(recordStart, i + 1));
+                        recordStart = recordStop = -1;
+                    }
+                }
+
+                // non-white space character
+                else if(!line.substring(i, i + 1).equals(" ")) {
+                    // within brackets -> ignore
+                    if(withinBrackets) {
+                        // ignore
+                    }
+
+                    // outside brackets
+                    else {
+                        // recorder started already
+                        if(recordStart > -1) {
+                            // do nothing
+                        }
+                        else {
+                            // start recording here
+                            recordStart = i;
+                        }
                     }
                 }
             }
@@ -416,9 +517,12 @@ public class FileImporter implements Iterable<Record> {
 
         // return array or null
         if (rawValuesList.size() > 0) {
+     ///       System.out.println("ççç: " + rawValuesList.size());
             String[] rawValues = new String[rawValuesList.size()];
-            rawValues = rawValuesList.toArray(rawValues);
-            return rawValues;
+            //rawValues = rawValuesList.toArray(rawValuesList);
+            return rawValuesList.toArray(new String[rawValuesList.size()]);
+           // String[] mock = { "abcd", "ab1d", "ab2d", "a3cd", "ab3d", "ab8d", "ab9d", "ab0d", "ascd", "awcd", "abed", "abwd", "abrd", "abtd", "azcd", "abud", "aicd", "alcd", "abkd", "abjd", "abhd", "abcg", "abfd", "abcd", "abcd", "abcs", "abad", "aycd", "abxd", "abcc", "axxd", "ayyd" };
+            //return mock;
         } else {
             return null;
         }
