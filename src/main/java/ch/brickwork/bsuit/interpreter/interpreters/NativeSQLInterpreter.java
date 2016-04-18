@@ -101,7 +101,7 @@ public class NativeSQLInterpreter extends AbstractInterpreter {
                 targetName = getTargetVariable().getVariableName();
 
             database.createOrReplaceVariable(targetName, command, null);
-            database.prepare("CREATE VIEW " + targetName + " AS " + command);
+            database.prepare("CREATE TABLE " + targetName + " AS " + command);
             final ProcessingResult pr = new ProcessingResult(ProcessingResult.ResultType.VIEW, targetName);
             pr.setSql(new ParsedAssignment(command, null));
             return pr;
