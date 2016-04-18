@@ -33,6 +33,8 @@ public class NativeSQLInterpreter extends AbstractInterpreter {
 
     private static final String DELETE_REGEX = "delete.+from.+";
 
+    private static final String SELECT_REGEX = "select.+from.+";
+
     private static final String INSERT_VALUES = "insert into.+";
 
     private static final String UPDATE_REGEX = "update.+set.+";
@@ -121,16 +123,14 @@ public class NativeSQLInterpreter extends AbstractInterpreter {
     }
 
     @Override
-    public boolean understands()
-    {
-        return command.toLowerCase().indexOf("select ") == 0 ||
-            command.toLowerCase().indexOf("insert ") == 0 ||
-            command.toLowerCase().indexOf("drop ") == 0 ||
-            command.toLowerCase().matches(UPDATE_REGEX) ||
-            command.toLowerCase().matches(DELETE_REGEX) ||
-            command.toLowerCase().matches(CREATE_TABLE_AS_REGEX) ||
-            command.toLowerCase().matches(CREATE_TABLE_REGEX) ||
-            command.toLowerCase().matches((INSERT_VALUES));
+    public boolean understands() {
+        return command.toLowerCase().matches(SELECT_REGEX) ||
+                command.toLowerCase().matches(UPDATE_REGEX) ||
+                command.toLowerCase().matches(DELETE_REGEX) ||
+                command.toLowerCase().matches(CREATE_TABLE_AS_REGEX) ||
+                command.toLowerCase().matches(CREATE_TABLE_REGEX) ||
+                command.toLowerCase().matches((INSERT_VALUES)) ||
+                command.toLowerCase().matches((DROP_REGEX));
     }
 
     @SuppressWarnings("ConstantConditions")
