@@ -33,11 +33,11 @@ public class TableModficationInterpreterTest {
 
     @Test
     public void testWildcardsDelete() {
-        tc.processScript("+newtable(*pk, a, b, c);");
-        tc.processScript("+newtabula(*pk, a, b, c);");
-        tc.processScript("+newtebele(*pk, a, b, c);");
-        tc.processScript("+x(*pk, a, b, c);");
-        tc.processScript("+ta(*pk, a, b, c);");
+        tc.processScript("+newtable(!pk, a, b, c);");
+        tc.processScript("+newtabula(!pk, a, b, c);");
+        tc.processScript("+newtebele(!pk, a, b, c);");
+        tc.processScript("+x(!pk, a, b, c);");
+        tc.processScript("+ta(!pk, a, b, c);");
         ProcessingResult pr = tc.processScript("-*ta*;");
         assertEquals(false, tc.db().existsTable("newtable"));
         assertEquals(false, tc.db().existsTable("newtabula"));

@@ -19,7 +19,7 @@ public class BsfTest {
     @BeforeClass
     public static void initTables() {
         tc.processScript(
-                "+sucktest(*id, name);\n" +
+                "+sucktest(!id, name);\n" +
                         "INSERT INTO sucktest VALUES(1, 'Müllér, Bob');\n" +
                         "INSERT INTO sucktest VALUES(2, 'Müller-Huber, Bob-Alice');\n" +
                         "INSERT INTO sucktest VALUES(3, 'Müller');\n" +

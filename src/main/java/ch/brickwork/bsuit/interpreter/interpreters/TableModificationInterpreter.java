@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  * <h2>Syntax</h2>
  * Create Table
  * <p class="syntax">
- * +tablename([*primary_key], attribute_1, ..., attribue_n);
+ * +tablename([!primary_key], attribute_1, ..., attribue_n);
  * </p>
  * Drop Table
  * <p class="syntax">
@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  * </p>
  * <h2>Examples</h2>
  *   <pre>
- * +mytable(*id, attribute1, attribute2); -- create
+ * +mytable(!id, attribute1, attribute2); -- create
  * -mytable; -- drop
  *  </pre>
  *</p>
@@ -52,6 +52,8 @@ public class TableModificationInterpreter extends AbstractInterpreter {
     private static final String CREATE_TABLE_COMMAND = "+";
 
     private static final String WILDCARD = "*";
+
+    private static final String PRIMARY_KEY_PREFIX = "!";
 
     /**
      * stores target variable and command text (both are automatically trimmed) for interpreters
@@ -143,8 +145,8 @@ public class TableModificationInterpreter extends AbstractInterpreter {
         int idx = 0;
         for (String columnName : arguments) {
             columnName = columnName.trim();
-            if (columnName.startsWith("*")) {
-                columnName = columnName.replace("*", "");
+            if (columnName.startsWith(PRIMARY_KEY_PREFIX)) {
+                columnName = columnName.replace(PRIMARY_KEY_PREFIX, "");
                 arguments.set(idx, columnName);
                 primaryKeys.add(columnName);
             } else if (columnName.equals(tableName + AUTO_PK_SUFFIX)) {

@@ -15,3 +15,10 @@ git clone https://github.com/BrickworkVentures/boilersuit-core.git
 ```
 mvn compile assembly:single
 ```
+
+# Using the man tool
+To create a html doc directly out of the class comments in the XXXInterpreter classes:
+## Arguments
+```
+bsman src/main/java/ch/brickwork/bsuit/interpreter/interpreters/ src/main/doc/interpreters.html
+```
