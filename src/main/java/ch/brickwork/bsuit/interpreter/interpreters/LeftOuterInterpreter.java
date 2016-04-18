@@ -140,7 +140,6 @@ public class LeftOuterInterpreter extends AbstractInterpreter {
                 sql.append(".");
                 sql.append(rightAttribute);
 
-                database.dropIfExistsViewOrTable(targetVariableName);
                 database.prepare(sql.toString());
 
                 final ProcessingResult pr = new ProcessingResult(ProcessingResult.ResultType.VIEW, targetVariableName, script);

@@ -718,6 +718,8 @@ public abstract class AbstractSQLDatabase {
     public Variable createOrReplaceVariable(final String variableName, final String desc, final String fileName) {
         final Variable tV = new Variable(-1, variableName, null != desc ? desc : "", null != fileName ? fileName : "");
 
+       dropIfExistsViewOrTable(variableName);
+
         // delete (if exists) and add variable to variables table
         prepare("DELETE FROM VARIABLES WHERE variable_name='" + tV.getVariableName() + "'");
         addVariable(tV);

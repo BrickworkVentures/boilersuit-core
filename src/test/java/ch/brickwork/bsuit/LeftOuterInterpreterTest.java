@@ -26,6 +26,10 @@ public class LeftOuterInterpreterTest {
         tc.processScript("lj := c1(id) -> c2(id);");
         assertEquals("count", 100, tc.getContext().getDatabase().count("lj"));
 
+        tc.tableDump("variables");
+
+        assertEquals("var", "1", tc.getContext().getDatabase().prepare("SELECT COUNT(*) FROM variables WHERE variable_name='lj'").get(0).getFirstValueContent());
+
         List<Record> notmatching = tc.getContext().getDatabase().prepare("SELECT c1_id, c1_name, c2_name FROM lj WHERE c1_id='1 only in c1'");
         assertEquals("count non matches", 1, notmatching.size());
         assertEquals("eq non matches", "", notmatching.get(0).getValue("c2_name").getValue());

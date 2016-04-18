@@ -3,6 +3,7 @@ package ch.brickwork.bsuit;
 
 import ch.brickwork.bsuit.database.IDatabase;
 import ch.brickwork.bsuit.database.IFileBasedDatabase;
+import ch.brickwork.bsuit.database.Record;
 import ch.brickwork.bsuit.database.SQLiteDatabase;
 import ch.brickwork.bsuit.globals.BoilerSuitGlobals;
 import ch.brickwork.bsuit.globals.IBoilersuitApplicationContext;
@@ -153,5 +154,12 @@ public class BoilerSuitTestContext {
 
     public IBoilersuitApplicationContext getContext() {
         return context;
+    }
+
+    public void tableDump(String tableName) {
+        System.out.println("-- BEGIN DATA DUMP: " + tableName + " -----------------------");
+        for(Record r : getContext().getDatabase().getAllRecordsFromTableOrView(tableName, null, null))
+            System.out.println(r);
+        System.out.println("-- END DATA DUMP -----------------------------");
     }
 }

@@ -5,6 +5,7 @@ import ch.brickwork.bsuit.database.Value;
 import ch.brickwork.bsuit.database.Variable;
 import ch.brickwork.bsuit.globals.IBoilersuitApplicationContext;
 import ch.brickwork.bsuit.interpreter.DefaultCommandInterpreter;
+import ch.brickwork.bsuit.interpreter.ScriptProcessor;
 import ch.brickwork.bsuit.interpreter.interpreters.MatchInterpreter;
 import ch.brickwork.bsuit.interpreter.interpreters.ProcessingResult;
 import ch.brickwork.bsuit.util.Partition;
@@ -213,16 +214,13 @@ public class MagicMatcher {
         final String leftAlias = matchTemporaryIdentifier + "_left_alias";
         final String rightAlias = matchTemporaryIdentifier + "_right_alias";
 
-        context.getDatabase().dropIfExistsViewOrTable(getExactMatchesTableName());
         final String innerJoin =
             "CREATE TABLE " + getExactMatchesTableName() + " AS SELECT " + leftAttributesConcatenation + ", " + rightAttributesConcatenation + ", " +
                 leftTempKeyAttributeName + ", " + rightTempKeyAttributeName + " FROM " + leftTempViewName + " " + leftAlias + " INNER JOIN " + rightTempViewName
                 + " " + rightAlias + " ON " + leftAlias + "." + leftTempKeyAttributeName + "=" + rightAlias + "." + rightTempKeyAttributeName;
-        final ProcessingResult pJoin = new DefaultCommandInterpreter(null, innerJoin, context).process();
+        final ProcessingResult pJoin = new ScriptProcessor().processScript(getExactMatchesTableName() + ":=" + innerJoin, null, null);
         if (!(pJoin.getType() == ProcessingResult.ResultType.TABLE || pJoin.getType() == ProcessingResult.ResultType.VIEW)) {
             return new ProcessingResult(ProcessingResult.ResultType.FATAL_ERROR, "Trouble creating inner join for exact match!");
-        } else {
-            context.getDatabase().createOrReplaceVariable(getExactMatchesTableName(), "Exact matches of the match run " + targetVariableName, "");
         }
 
         final String joinResultTable = pJoin.getResultSummary();
