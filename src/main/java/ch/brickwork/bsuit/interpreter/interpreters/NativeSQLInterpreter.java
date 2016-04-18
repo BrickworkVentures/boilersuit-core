@@ -37,6 +37,8 @@ public class NativeSQLInterpreter extends AbstractInterpreter {
 
     private static final String UPDATE_REGEX = "update.+set.+";
 
+    private static final String DROP_REGEX = "drop.+table.+";
+
     private static final String TXT_TABLE_ALREADY_EXISTS = "Table already exists!";
 
     private IDatabase database = context.getDatabase();
@@ -91,6 +93,12 @@ public class NativeSQLInterpreter extends AbstractInterpreter {
             database.prepare(command);
             final ProcessingResult pr = new ProcessingResult(ProcessingResult.ResultType.MESSAGE, "Delete processed.", script);
             pr.setSql(new ParsedAssignment(command, null));
+            return pr;
+        } else if(command.toLowerCase().matches(DROP_REGEX)) {
+            database.prepare(command);
+            final ProcessingResult pr = new ProcessingResult(ProcessingResult.ResultType.MESSAGE, "Drop processed.", script);
+            pr.setSql(new ParsedAssignment(command, null));
+            context.getLog().warn("You should use the minus (-) operator to drop tables in BS! Hope you know what you're doing");
             return pr;
         } else if(command.toLowerCase().indexOf("select ") == 0) {
             // create temporary target var if needed
