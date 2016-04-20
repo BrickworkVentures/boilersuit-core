@@ -21,7 +21,7 @@ import java.util.List;
  */
 public class DefaultCommandInterpreter extends AbstractInterpreter implements ICommandInterpreter {
 
-    public static final String CORE_VERSION = "1.0.0 Beta";
+    public static final String CORE_VERSION = "1.0.1 (210416)";
 
     private List<IInterpreter> interpreters = new ArrayList<>();
 

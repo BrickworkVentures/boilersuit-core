@@ -39,6 +39,15 @@ import java.util.regex.PatternSyntaxException;
  * <table>
  * <tr><th>Function</th><th>Purpose</th></tr>
  * <tr>
+ * <td>Row ID</td>
+ * <td>Short-hand notation to add a row number to the result
+ * <pre>
+ * -- in sqlite for instance, this would translate to SELECT rowid AS id, ** FROM source
+ * transformed := source(!id, **);
+ * </pre>
+ * </td>
+ * </tr>
+ * <tr>
  * <td>bsfMagicDate</td>
  * <td>Tries to recognize a date expression from various formats into the BS default format MM.dd.yyyy.
  * Works even if the formats in the source data vary from row
@@ -116,6 +125,12 @@ import java.util.regex.PatternSyntaxException;
 public class TableExpressionInterpreter extends AbstractInterpreter {
 
     private static final int MAGIC_FUNCTIONS_PARTITION_SIZE = 10000;
+
+    /**
+     * in a table expression, you can use something like table(!id, a, b, c, *) instead of
+     * table(rowid AS id, a, b, c, *)
+     */
+    public static final String ROW_ID_FUNCTION_PREFIX = "!";
 
     private final IDatabase database = context.getDatabase();
 
@@ -355,6 +370,7 @@ public class TableExpressionInterpreter extends AbstractInterpreter {
      * @param selectSql      text contains the select statement
      * @param attributeToken attribute used for extract token
      * @return list of errourness attribute names used, or empty list if everything ok
+     * @TODO: hm....use toLower against as...!!
      */
     private String createTokenFromAttributes(final StringBuilder selectSql, final String attributeToken) {
         // find token and predefine AS text - assuming it there in the form (..., token AS predefined-as-text, ...)
@@ -595,7 +611,14 @@ public class TableExpressionInterpreter extends AbstractInterpreter {
             }
         }
 
-        sqlAttributeDefinition = arg.replace("+", "||");
+        int prefixIndex = arg.indexOf(ROW_ID_FUNCTION_PREFIX);
+        if(prefixIndex != -1) {
+            preDefinedAsAddOn = " AS " + arg.substring(prefixIndex + 1);
+            sqlAttributeDefinition = context.getDatabase().getRowIdKeyWord().replace("+", "||");
+        } else {
+            // allow + as a concat operator
+            sqlAttributeDefinition = arg.replace("+", "||");
+        }
 
         return sqlAttributeDefinition + preDefinedAsAddOn;
     }
@@ -784,7 +807,6 @@ public class TableExpressionInterpreter extends AbstractInterpreter {
      * @param preDefinedAs e.g. suck(date, '\w\d+', 1) as mysuck, in this example preDefinedAs will be 'mysuck'
      * @return list of found arguments
      */
-
     private String preprocessSuckClause(final String arg, final String preDefinedAs) {
         final int suckPos = arg.toLowerCase().indexOf("suck");
 

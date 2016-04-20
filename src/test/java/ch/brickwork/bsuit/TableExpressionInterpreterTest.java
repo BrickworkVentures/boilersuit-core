@@ -25,9 +25,18 @@ public class TableExpressionInterpreterTest {
 
     @Test
     public void shortHandSelect() {
-        ProcessingResult prNative = tc.processScript("x := SELECT id, email FROM customers WHERE email LIKE '%.co.uk'");
-        ProcessingResult prShortHand = tc.processScript("customers(id, email{LIKE %co.uk} AS email);");
-        assertEquals(true, sameValues(prNative, prShortHand));
+        assertEquals("shortHandSelect", true, sameValues("SELECT id, email FROM customers WHERE email LIKE '%.co.uk'", "customers(id, email{LIKE %co.uk} AS email);"));
+    }
+
+    @Test
+    public void shortHandRowId() {
+        assertEquals("shortHandRowId", true, sameValues("SELECT rowid AS id, email FROM customers", "customers(!id, email)"));
+    }
+
+    private boolean sameValues(String script1, String script2) {
+        ProcessingResult prNative = tc.processScript(script1);
+        ProcessingResult prShortHand = tc.processScript(script2);
+        return sameValues(prNative, prShortHand);
     }
 
     private boolean sameValues(ProcessingResult p, ProcessingResult q) {

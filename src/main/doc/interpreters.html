@@ -81,6 +81,14 @@
  <table>
  <tr><th>Function</th><th>Purpose</th></tr>
  <tr>
+ <td>Row ID</td>
+ <td>Short-hand notation to add a row number to the result
+ <pre>
+ -- in sqlite for instance, this would translate to SELECT rowid AS id,* FROM source
+ transformed := source(!id,*);
+ </pre> </td>
+ </tr>
+ <tr>
  <td>bsfMagicDate</td>
  <td>Tries to recognize a date expression from various formats into the BS default format MM.dd.yyyy.
  Works even if the formats in the source data vary from row
