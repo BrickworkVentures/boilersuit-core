@@ -182,13 +182,20 @@ public class FileImporter implements Iterable<Record> {
                     ByteOrderMark.UTF_32LE, ByteOrderMark.UTF_32BE
             );
 
-            encoding = detectEncoding();
             if(encoding == null) {
-                encoding = DEFAULT_ENCODING;
-                context.getLog().warn("Encoding could not be detected, using default: " + encoding);
+                encoding = detectEncoding();
+                if (encoding == null) {
+                    encoding = DEFAULT_ENCODING;
+                    context.getLog().warn("Encoding could not be detected, using default: " + encoding);
+                } else {
+                    context.getLog().info("Detected " + encoding + " encoding");
+                    if(isRareEncoding(encoding))
+                        context.getLog().warn("Encoding " + encoding + " is rather rare; please check if applicable, otherwise use 'WITH encoding(...)' option");
+                }
             } else {
-                context.getLog().info("Detected " + encoding + " encoding");
+                context.getLog().info("Using predefined " + encoding + " encoding");
             }
+
             return new InputStreamReader(bomIn, encoding);
         } catch (FileNotFoundException e) {
             context.getLog().err("File not found" + e.getMessage() + e.getStackTrace());
@@ -197,6 +204,10 @@ public class FileImporter implements Iterable<Record> {
         }
 
         return null;
+    }
+
+    private boolean isRareEncoding(String encoding) {
+        return !encoding.contains("UTF") && !encoding.contains("WINDOWS") && !encoding.contains("ASCII");
     }
 
     /**
