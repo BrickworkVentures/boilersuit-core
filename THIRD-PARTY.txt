@@ -1,11 +1,13 @@
 
-Lists of 20 third-party dependencies.
+Lists of 22 third-party dependencies.
      (Public Domain) (The Apache Software License, Version 2.0) sqlite4java native library (linux-amd64) (com.almworks.sqlite4java:libsqlite4java-linux-amd64:1.0.392 - http://code.google.com/p/sqlite4java)
      (Public Domain) (The Apache Software License, Version 2.0) sqlite4java native library (linux-i386) (com.almworks.sqlite4java:libsqlite4java-linux-i386:1.0.392 - http://code.google.com/p/sqlite4java)
      (Public Domain) (The Apache Software License, Version 2.0) sqlite4java native library (osx) (com.almworks.sqlite4java:libsqlite4java-osx:1.0.392 - http://code.google.com/p/sqlite4java)
      (The Apache Software License, Version 2.0) sqlite4java (com.almworks.sqlite4java:sqlite4java:1.0.392 - http://code.google.com/p/sqlite4java)
      (Public Domain) (The Apache Software License, Version 2.0) sqlite4java native library (win32-x64) (com.almworks.sqlite4java:sqlite4java-win32-x64:1.0.392 - http://code.google.com/p/sqlite4java)
      (Public Domain) (The Apache Software License, Version 2.0) sqlite4java native library (win32-x86) (com.almworks.sqlite4java:sqlite4java-win32-x86:1.0.392 - http://code.google.com/p/sqlite4java)
+     (Mozilla Public License 1.1 (MPL 1.1)) juniversalchardet (com.googlecode.juniversalchardet:juniversalchardet:1.0.3 - http://juniversalchardet.googlecode.com/)
+     (Apache 2) opencsv (com.opencsv:opencsv:3.7 - http://opencsv.sf.net)
      (The Apache Software License, Version 2.0) Commons Codec (commons-codec:commons-codec:1.5 - http://commons.apache.org/codec/)
      (The Apache Software License, Version 2.0) Commons IO (commons-io:commons-io:2.4 - http://commons.apache.org/io/)
      (Unknown license) dom4j (dom4j:dom4j:1.6.1 - http://dom4j.org)

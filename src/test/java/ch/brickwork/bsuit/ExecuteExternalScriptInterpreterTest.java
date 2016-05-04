@@ -35,7 +35,7 @@ public class ExecuteExternalScriptInterpreterTest {
         tc.processScript("execute(\"testscript.bs\")");
         assertEquals(true, tc.db().existsTable("usa"));
         assertEquals(false, tc.db().existsTable("usb"));
-        assertEquals(true, tc.noErrorsOrWarnings());
+        assertEquals(true, tc.noErrors());
     }
 
     @AfterClass

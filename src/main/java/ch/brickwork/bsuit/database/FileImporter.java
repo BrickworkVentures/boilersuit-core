@@ -5,6 +5,7 @@ import ch.brickwork.bsuit.util.FileIOUtils;
 import ch.brickwork.bsuit.util.TextUtils;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.input.BOMInputStream;
+import org.mozilla.universalchardet.UniversalDetector;
 
 import java.io.*;
 import java.util.Iterator;
@@ -47,7 +48,7 @@ public class FileImporter implements Iterable<Record> {
 
     private String logFilePath;
 
-    private static final String DEFAULT_ENCODING = "UTF-8";
+    private static final String DEFAULT_ENCODING = "US-ASCII";
 
     private final File file;
 
@@ -181,24 +182,12 @@ public class FileImporter implements Iterable<Record> {
                     ByteOrderMark.UTF_32LE, ByteOrderMark.UTF_32BE
             );
 
-            if (!bomIn.hasBOM()) {
-                context.getLog().info("Using default encoding " + DEFAULT_ENCODING);
+            encoding = detectEncoding();
+            if(encoding == null) {
                 encoding = DEFAULT_ENCODING;
-            } else if (bomIn.hasBOM(ByteOrderMark.UTF_8)) {
-                context.getLog().info("Detected UTF-8 encoding");
-                encoding = "UTF-8";
-            } else if (bomIn.hasBOM(ByteOrderMark.UTF_16LE)) {
-                context.getLog().info("Detected UTF-16LE encoding");
-                encoding = "UTF-16LE";
-            } else if (bomIn.hasBOM(ByteOrderMark.UTF_16BE)) {
-                context.getLog().info("Detected UTF-16BE encoding");
-                encoding = "UTF-16BE";
-            } else if (bomIn.hasBOM(ByteOrderMark.UTF_32LE)) {
-                context.getLog().info("Detected UTF-32LE encoding");
-                encoding = "UTF-32LE";
-            } else if (bomIn.hasBOM(ByteOrderMark.UTF_32BE)) {
-                context.getLog().info("Detected UTF-32BE encoding");
-                encoding = "UTF-32BE";
+                context.getLog().warn("Encoding could not be detected, using default: " + encoding);
+            } else {
+                context.getLog().info("Detected " + encoding + " encoding");
             }
             return new InputStreamReader(bomIn, encoding);
         } catch (FileNotFoundException e) {
@@ -288,43 +277,15 @@ public class FileImporter implements Iterable<Record> {
         }
     }
 
+    private String detectEncoding() throws IOException {
+        byte[] buf = new byte[4096];
+        FileInputStream fis = new java.io.FileInputStream(file.getAbsolutePath());
+        UniversalDetector detector = new UniversalDetector(null);
+        int nread;
+        while ((nread = fis.read(buf)) > 0 && !detector.isDone())
+            detector.handleData(buf, 0, nread);
 
-    private String cutOffFirstQuote(String s) {
-        if (s.length() < 1)
-            return s;
-
-        for (String q : DEFAULT_QUOTE_LITERAL_TRANSLATION) {
-            if (s.startsWith(q))
-                return s.substring(1);
-        }
-
-        return s;
-    }
-
-    private String cutOffLastQuote(String s) {
-        if (s.length() < 1)
-            return s;
-
-        for (String q : DEFAULT_QUOTE_LITERAL_TRANSLATION) {
-            if (s.endsWith(q))
-                return s.substring(0, s.length() - 1);
-        }
-
-        return s;
-    }
-
-    private String translateQuoteLiterals(String s) {
-        for (int i = 0; i < DEFAULT_QUOTE_LITERALS_REGEXP.length; i++) {
-            String literal = DEFAULT_QUOTE_LITERALS_REGEXP[i];
-            String translation = DEFAULT_QUOTE_LITERAL_TRANSLATION[i];
-            s = s.replaceAll(literal, translation);
-        }
-        return s;
-    }
-
-    private String withoutQuoteLiterals(String s) {
-        for (String literal : DEFAULT_QUOTE_LITERALS_REGEXP)
-            s = s.replaceAll(literal, "");
-        return s;
+        detector.dataEnd();
+       return detector.getDetectedCharset();
     }
 }
