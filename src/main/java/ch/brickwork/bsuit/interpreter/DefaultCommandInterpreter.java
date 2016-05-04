@@ -1,7 +1,6 @@
 package ch.brickwork.bsuit.interpreter;
 
 import ch.brickwork.bsuit.database.Variable;
-import ch.brickwork.bsuit.globals.BoilerSuitGlobals;
 import ch.brickwork.bsuit.globals.IBoilersuitApplicationContext;
 import ch.brickwork.bsuit.interpreter.interpreters.*;
 import ch.brickwork.bsuit.interpreter.util.ICommandInterpreter;
@@ -21,7 +20,7 @@ import java.util.List;
  */
 public class DefaultCommandInterpreter extends AbstractInterpreter implements ICommandInterpreter {
 
-    public static final String CORE_VERSION = "1.0.1 (210416)";
+    public static final String CORE_VERSION = "1.0.2 (040516)";
 
     private List<IInterpreter> interpreters = new ArrayList<>();
 

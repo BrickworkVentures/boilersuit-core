@@ -36,13 +36,13 @@ public class FileImporterTest {
                 "1101376,24893,1,Ms.,Magnokova,MAGNOKOVA,Ana,,,\"Magnokova, Ana \"\"the best\"\"\",\"MAGNOKOVA, EVA\",Eva,1006866,English,1006866,English,1,Person,30/04/2013 10:06:09.000000,PI,05/09/2014 13:30:14.000000,PI,20140305235129,A_CODE,,,,,,,,,ABCC010,active,,,FALSE,,,FALSE,,123456,99,Not rated,FALSE,\"Europe, Middle East & Africa\",,,,,FALSE,FALSE,FALSE,23/05/2015 18:42:00.000000,,,FALSE,,,,");
 
         File f5 = tc.createFile("test4.csv");
-        FileIOUtils.overwriteFile(f5.getAbsolutePath(), "'col1', 'col2', 'col3', 'col4'\n" +
-                "'val11', 'val12', 'val13', 'val14'\n" +
-                "'val21', 'val22', 'val23', 'val24\nwhich is\ntruncated\n" +
-                "until here'\n" +
-                "'val31', 'val32', 'val33',\n" +
-                "'val41',,,'val44'\n" +
-                "'val51',,,'val54'"
+        FileIOUtils.overwriteFile(f5.getAbsolutePath(), "\"col1\", \"col2\", \"col3\", \"col4\"\n" +
+                "\"val11\", \"val12\", \"val13\", \"val14\"\n" +
+                "\"val21\", \"val22\", \"val23\", \"val24\nwhich is\ntruncated\n" +
+                "until here\"\n" +
+                "\"val31\", \"val32\", \"val33\",\n" +
+                "\"val41\",,,\"val44\"\n" +
+                "\"val51\",,,\"val54\""
         );
 
 /*
@@ -68,7 +68,6 @@ public class FileImporterTest {
 
         // warnings
         assertEquals(tc.getTestLog().getErrLog().size(), 0);
-        assertEquals(tc.getTestLog().getWarnLog().size(), 0);
 
         // values
         List<Record> records = tc.db().getAllRecordsFromTableOrView("test1", null, null);
@@ -94,9 +93,10 @@ public class FileImporterTest {
     public void test2() {
         ProcessingResult pr = tc.processScript("test2 := test2.csv;");
 
+        assertEquals("partnername", "Rest. Kunsteisbahn \"Icebreaker\" KURZ", tc.getContext().getDatabase().getAllRecordsFromTableOrView("test2", null, null).get(0).getValue("PARTNER_NAME").getValue());
+
         // warnings
         assertEquals(tc.getTestLog().getErrLog().size(), 0);
-        assertEquals(tc.getTestLog().getWarnLog().size(), 0);
     }
 
     @Test
@@ -159,9 +159,8 @@ public class FileImporterTest {
 
         List<Record> r = tc.getContext().getDatabase().getAllRecordsFromTableOrView("test4", null, null);
         assertEquals("1", "Record: col1: val11, col2: val12, col3: val13, col4: val14", r.get(0).toString());
-        assertEquals("2", "Record: col1: val21, col2: val22, col3: val23, col4: val24which istruncateduntil here", r.get(1).toString());
+        assertEquals("2", "Record: col1: val21, col2: val22, col3: val23, col4: val24\nwhich is\ntruncated\nuntil here", r.get(1).toString());
         assertEquals("3", "Record: col1: val31, col2: val32, col3: val33, col4: ", r.get(2).toString());
-        assertEquals("warning", true, tc.getTestLog().isMentionedInWarnLog("line breaks"));
     }
 
     @Test
@@ -173,7 +172,7 @@ public class FileImporterTest {
                 tc.getContext().getDatabase().getAllRecordsFromTableOrView("u", null, null).get(6).toString());
     }
 
-
+//@Test
     public void temp() {
         tc.flush();
 

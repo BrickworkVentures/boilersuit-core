@@ -48,18 +48,20 @@ public class FileLoader {
             int i = 0;
             try {
                 for (Record record : fileImporter) {
-                    i++;
-                    if (i % LOG_IMPORT_RECORDS_COUNT_AFTER == 0) {
-                        context.getLog().info("Load records from " + fileName + " (" + i + " lines completed)");
-                    }
+                    if(!FileImporter.isToBeIgnored(record)) {
+                        i++;
+                        if (i % LOG_IMPORT_RECORDS_COUNT_AFTER == 0) {
+                            context.getLog().info("Load records from " + fileName + " (" + i + " lines completed)");
+                        }
 
-                    if (i % PARTITION_SIZE_IMPORT == 0) {
-                        database.insert(Variable.getTableName(variableName), records);
-                        records = new ArrayList<>();
-                    }
+                        if (i % PARTITION_SIZE_IMPORT == 0) {
+                            database.insert(Variable.getTableName(variableName), records);
+                            records = new ArrayList<>();
+                        }
 
-                    if (record.countValues() > 0) {
-                        records.add(record);
+                        if (record.countValues() > 0) {
+                            records.add(record);
+                        }
                     }
                 }
             } catch (Exception e) {

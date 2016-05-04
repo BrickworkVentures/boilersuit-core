@@ -259,7 +259,11 @@ public class SQLiteDatabase extends AbstractSQLDatabase implements IDatabase, IF
                     // this method is called from database thread and passed the connection
                     connection.exec("BEGIN");
                     for (Record record : records) {
-                        log.log("INSERT: " + record.toString());
+                        // leads to too many logging entries when importing large files
+                        // at later point:
+                        // @TODO: something like temporary suppressing certain log entries
+                        // currently commented out
+                        // log.log("INSERT: " + record.toString());
                         s = connection.prepare(createInsertStatement(tableName, record));
                         s.step();
                     }

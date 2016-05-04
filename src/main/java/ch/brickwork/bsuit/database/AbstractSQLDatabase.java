@@ -300,11 +300,6 @@ public abstract class AbstractSQLDatabase {
      * @param record    record to be inserted
      */
     public void insert(final String tableName, final Record record) {
-        /*
-        String sql = createInsertStatement(tableName, record);
-        log.log("Inserting: " + sql);
-        prepare(sql);
-        */
         ArrayList<Record> list = new ArrayList<>();
         list.add(record);
         insert(tableName, list);
