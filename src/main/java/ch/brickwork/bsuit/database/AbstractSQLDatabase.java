@@ -489,7 +489,7 @@ public abstract class AbstractSQLDatabase {
      * empty_name_1 ... empty_name_n replaces duplicate names by XXX_1, XXX_2
      * (where XXX is the duplicate text) puts all to lower case
      */
-    public void cleanColumnNames(final String[] columnNames) {
+    public String[] cleanColumnNames(final String[] columnNames) {
         int emptyHeaderCount = 1;
 
         for (int i = 0; i < columnNames.length; i++) {
@@ -519,6 +519,8 @@ public abstract class AbstractSQLDatabase {
                 }
             }
         }
+
+        return columnNames;
     }
 
     /**
@@ -730,8 +732,8 @@ public abstract class AbstractSQLDatabase {
      * @return created Variable
      */
     public Variable createOrReplaceVariableAndTable(final String tableName, final String desc, final String fileName,
-                                                    final String[] columnNames, final String[] primaryKeys) {
-        cleanColumnNames(columnNames);
+                                                    String[] columnNames, String[] primaryKeys) {
+        columnNames = cleanColumnNames(columnNames);
         if (existsTable(tableName)) {
             // delete data (if already exists)
             prepare("DROP TABLE " + tableName);
@@ -762,7 +764,7 @@ public abstract class AbstractSQLDatabase {
             final StringBuilder primaryKey = new StringBuilder();
             primaryKey.append(primaryKeySyntax);
             primaryKey.append("(");
-            cleanColumnNames(primaryKeys);
+            primaryKeys = cleanColumnNames(primaryKeys);
             first = true;
             for (String pkName : primaryKeys) {
                 if (first) {

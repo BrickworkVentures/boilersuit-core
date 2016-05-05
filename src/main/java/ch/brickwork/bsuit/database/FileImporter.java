@@ -219,7 +219,6 @@ public class FileImporter implements Iterable<Record> {
 
         rowCount = 0;
 
-        StringBuffer sample = new StringBuffer();
         BufferedReader br = new BufferedReader(openStream());
 
         double[] sum = new double[DELIMITERS.length];
@@ -273,7 +272,7 @@ public class FileImporter implements Iterable<Record> {
 
         // clean column names
         if (null != columnNames) {
-            context.getDatabase().cleanColumnNames(columnNames);
+            columnNames = context.getDatabase().cleanColumnNames(columnNames);
         }
     }
 

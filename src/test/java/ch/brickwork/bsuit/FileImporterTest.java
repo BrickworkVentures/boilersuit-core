@@ -45,6 +45,9 @@ public class FileImporterTest {
                 "\"val51\",,,\"val54\""
         );
 
+        File f6 = tc.createFile("test5.csv");
+        FileIOUtils.overwriteFile(f6.getAbsolutePath(), "strange:character-col(1),strange:character/col(2)\nval1, val2");
+
 /*
         File t = tc.createFile("temp.csv");
         FileIOUtils.overwriteFile(t.getAbsolutePath(), "");
@@ -100,7 +103,7 @@ public class FileImporterTest {
     }
 
     @Test
-    public void wildCardAsterix() {
+    public void wildCardAsterixTest() {
         ProcessingResult pr = tc.processScript(":= test*.csv;");
         tc.getTestLog().log(pr.getResultSummary());
         assertEquals("wa1", "1", tc.processScript("#test1_csv").getSingleValue());
@@ -164,12 +167,19 @@ public class FileImporterTest {
     }
 
     @Test
-    public void us500() {
+    public void us500Test() {
         tc.flush();
         ProcessingResult pr = tc.processScript("u := us-500.csv");
         assertEquals("count", 500, tc.getContext().getDatabase().count("u"));
         assertEquals("6th rec", "Record: first_name: Mitsue, last_name: Tollner, company_name: Morlong Associates, address: 7 Eads St, city: Chicago, county: Cook, state: IL, zip: 60632, phone1: 773-573-6914, phone2: 773-924-8565, email: mitsue_tollner@yahoo.com, web: http://www.morlongassociates.com",
                 tc.getContext().getDatabase().getAllRecordsFromTableOrView("u", null, null).get(6).toString());
+    }
+
+    @Test
+    public void sanitizeColumnNamesTest() {
+        tc.flush();
+        ProcessingResult pr = tc.processScript("t := test5.csv");
+        tc.tableDump("t");
     }
 
 //@Test

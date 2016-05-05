@@ -109,7 +109,7 @@ public interface IDatabase {
      * empty_name_1 ... empty_name_n replaces duplicate names by XXX_1, XXX_2
      * (where XXX is the duplicate text) puts all to lower case
      */
-    void cleanColumnNames(final String[] columnNames);
+    String[] cleanColumnNames(final String[] columnNames);
 
     /**
      * counts number of records in table or view with name "tableOrViewName"
