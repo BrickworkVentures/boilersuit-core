@@ -42,7 +42,7 @@ public abstract class AbstractSQLDatabase {
 
     private static final String DEFAULT_COLUMN_NAME_IF_COLUMN_IS_EMPTY = "empty_column_name";
 
-    private static final String FORBIDDEN_CHARACTERS = "[^*/_#():.a-zA-Z0-9\\s-]";
+    private static final String FORBIDDEN_CHARACTERS = "[\\^\\*/#\\(\\):\\s\\-]";
 
     private static final String DEFAULT_QUOTED_COLUMN_NAME_START_LITERAL = "\"";
 
@@ -557,11 +557,11 @@ public abstract class AbstractSQLDatabase {
 
         // replace forbidden characters
         if(!quoted)
-            colName = colName.replaceAll(getForbiddenCharactersRegEx(), "_");
+            colName = replaceForbiddenCharacters(colName);
         else
             // replace them only within the quote (quote itself is also forbidden, but we do
             // not want to remove the quotes!
-            colName = quoteName(colName.substring(1, colName.length() - 1).replaceAll(getForbiddenCharactersRegEx(), "_"));
+            colName = quoteName(replaceForbiddenCharacters(colName.substring(1, colName.length() - 1)));
 
 
         // handle delicate characters and quote if necessary
@@ -588,12 +588,25 @@ public abstract class AbstractSQLDatabase {
     }
 
     /**
+     * replaces forbidden characters by '_' and ensures that there are not trailing '_' in the result
+     * @param name
+     * @return
+     */
+    private String replaceForbiddenCharacters(String name) {
+        String s = name.replaceAll(getForbiddenCharactersRegEx(), "_").trim();
+        while(s.charAt(s.length() - 1) == '_')
+            s = s.substring(0, s.length() - 1);
+        while(s.charAt(0) == '_')
+            s = s.substring(1);
+        return s;
+    }
+
+    /**
      * replaces ' by '' such that insert statement of strings is not violating
      * syntax
      *
      * @return literalizeQuotes text
      */
-
     private String literalizeQuotes(String string) {
         return string.replace("'", "''");
     }

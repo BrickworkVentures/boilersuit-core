@@ -179,7 +179,7 @@ public class FileImporterTest {
     public void sanitizeColumnNamesTest() {
         tc.flush();
         ProcessingResult pr = tc.processScript("t := test5.csv");
-        tc.tableDump("t");
+        assertEquals("strange_character_col_1", tc.getContext().getDatabase().getTableOrViewColumnNames("t").get(0));
     }
 
 //@Test

@@ -412,7 +412,7 @@ public class TableExpressionInterpreter extends AbstractInterpreter {
         // generate "as" text to be used as default (if less
         final String asText;
         if (attributeTokenBeforeAs != null) {
-            asText = context.getDatabase().sanitizeName(attributeTokenBeforeAs);
+            asText = attributeTokenBeforeAs;
 
             // add
             selectSql.append(attributeTokenBeforeAs);
