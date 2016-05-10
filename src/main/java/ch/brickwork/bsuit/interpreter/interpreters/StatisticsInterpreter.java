@@ -115,7 +115,7 @@ public class StatisticsInterpreter extends AbstractInterpreter {
                 if (null != countResult && null != distinctCountResults && !countResult.trim().equals(distinctCountResults.trim())) {
                     final String tempCountName = database.createTempName();
                     final String detailsSQL =
-                        "SELECT " + firstColName + ", countResult(" + firstColName + ") as " + tempCountName + " from " + tableOrViewName + " GROUP BY "
+                        "SELECT " + firstColName + ", count(" + firstColName + ") as " + tempCountName + " from " + tableOrViewName + " GROUP BY "
                             + firstColName + " HAVING " + tempCountName + " <> 1 ORDER BY " + tempCountName + " DESC";
                     final List<Record> listDuplicates = database.prepare(detailsSQL + " LIMIT 5");
                     String info = "For instance:\n";
