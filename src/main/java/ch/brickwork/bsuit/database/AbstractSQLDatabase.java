@@ -593,7 +593,14 @@ public abstract class AbstractSQLDatabase implements IDatabase {
      * @return
      */
     private String replaceForbiddenCharacters(String name) {
-        String s = name.replaceAll(getForbiddenCharactersRegEx(), "_").trim();
+        String s = name.replaceAll(">", "gt");
+        s = s.replaceAll("<", "_lt_");
+        s = s.replaceAll("=", "_eq_");
+
+        s = s.replaceAll(getForbiddenCharactersRegEx(), "_").trim();
+
+        while(s.contains("__")) s = s.replaceAll("__", "_");
+
         while(s.charAt(s.length() - 1) == '_')
             s = s.substring(0, s.length() - 1);
         while(s.charAt(0) == '_')
