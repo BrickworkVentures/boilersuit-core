@@ -1,5 +1,7 @@
 package ch.brickwork.bsuit.database;
 
+import ch.brickwork.bsuit.util.OrderedHashTable;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -11,16 +13,7 @@ import java.util.List;
  */
 public class Record implements Iterable<Value> {
 
-    /**
-     * list of all values
-     */
-    private final List<Value> values = new ArrayList<>();
-
-    /**
-     * hash of all values (with key attribute name). This is redundantly filled to provide easy and quick
-     * access to the values, like an index
-     */
-    private final Hashtable<String, Value> valuesHash = new Hashtable<>();
+    private OrderedHashTable<Value> values = new OrderedHashTable<>(true);
 
     /**
      * @return string array with column names in this record
@@ -58,7 +51,7 @@ public class Record implements Iterable<Value> {
 
     public Value getValue(String attributeName)
     {
-        return valuesHash.get(attributeName);
+        return values.get(attributeName);
     }
 
     /**
@@ -76,7 +69,7 @@ public class Record implements Iterable<Value> {
      */
     public boolean hasAttribute(String attributeName)
     {
-        return valuesHash.get(attributeName) != null;
+        return values.get(attributeName) != null;
     }
 
     /**
@@ -85,10 +78,9 @@ public class Record implements Iterable<Value> {
      * @return Iterator
      */
     @Override
-
     public Iterator<Value> iterator()
     {
-        return values.iterator();
+        return values.getValuesIterator();
     }
 
     /**
@@ -98,7 +90,7 @@ public class Record implements Iterable<Value> {
      * @param value         value that the attribute with name "attributeName" will have after calling
      */
     public void put(String attributeName, Object value) {
-        final Value currentValue = valuesHash.get(attributeName);
+        final Value currentValue = values.get(attributeName);
         if (currentValue == null) {
             addValue(new Value(attributeName, value));
         } else {
@@ -143,7 +135,6 @@ public class Record implements Iterable<Value> {
      * @param value is a Value object which will be added to HashTable
      */
     private void addValue(Value value) {
-        values.add(value);
-        valuesHash.put(value.getAttributeName(), value);
+        values.put(value.getAttributeName(), value);
     }
 }
