@@ -13,7 +13,7 @@ import java.util.List;
  * to the various flavours of SQL dialects/DBMS are abstract.
  * Created by marcel on 06.11.15.
  */
-public abstract class AbstractSQLDatabase {
+public abstract class AbstractSQLDatabase implements IDatabase {
 
     /**
      * log to display messages

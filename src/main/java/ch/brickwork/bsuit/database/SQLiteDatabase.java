@@ -16,7 +16,7 @@ import java.util.List;
  * @author Marcel Camporelli
  *         (camporelli@brickwork.ch)
  */
-public class SQLiteDatabase extends AbstractSQLDatabase implements IDatabase, IFileBasedDatabase {
+public class SQLiteDatabase extends AbstractSQLDatabase implements IFileBasedDatabase {
 
     public static final long SQLITE_BUSY_TIMEOUT = 1000L;
 
