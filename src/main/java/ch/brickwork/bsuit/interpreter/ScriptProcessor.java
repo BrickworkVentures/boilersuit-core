@@ -78,11 +78,6 @@ public class ScriptProcessor {
         }
         scriptText = scriptText.replaceAll("\t", "");
 
-        // if there is now ; at all - just assume it at the end:
-        if (scriptText.indexOf(';') == -1) {
-            scriptText += ';';
-        }
-
         // also, simulate a) \n-- comments and b) xyz -- comments. a)
         final List<String> tokens = new ArrayList<>();
         parseTokens(scriptText, tokens);
@@ -257,6 +252,10 @@ public class ScriptProcessor {
                     }
                 }
         }
+
+        // last one if last ';' missing
+        if(currentToken.trim().length() > 0)
+            tokens.add(currentToken);
     }
 
     /**

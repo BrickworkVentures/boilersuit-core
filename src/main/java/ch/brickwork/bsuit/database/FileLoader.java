@@ -34,8 +34,8 @@ public class FileLoader {
      * @param encoding
      * @return table name of the table created to store the file contents
      */
-    public String loadFile(final String variableName, final String desc, final File file, String encoding) {
-        final FileImporter fileImporter = new FileImporter(file, encoding, context);
+    public String loadFile(final String variableName, final String desc, final File file, String encoding, String delim) {
+        final FileImporter fileImporter = new FileImporter(file, encoding, delim, context);
 
         String fileName = file.getName();
 

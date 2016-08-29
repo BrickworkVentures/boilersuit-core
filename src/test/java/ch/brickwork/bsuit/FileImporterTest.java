@@ -48,6 +48,11 @@ public class FileImporterTest {
         File f6 = tc.createFile("test5.csv");
         FileIOUtils.overwriteFile(f6.getAbsolutePath(), "strange:character-col(1),strange:character/col(2)\nval1, val2");
 
+        File f7 = tc.createFile("test7.csv");
+        FileIOUtils.overwriteFile(f7.getAbsolutePath(), "exid;code;somedate;anotherdate\n"
+            + "1635115544;abc;2016-03-01 00:00:00;2016-03-07 00:00:00\n" + "1635115544;cde;2016-03-29 00:00:00;2016-04-09 00:00:00\n"
+            + "1635115544;abc;2016-05-06 00:00:00;2016-05-16 00:00:00\n" + "1635115544;efg;2016-07-18 00:00:00;2016-07-25 00:00:00");
+
 /*
         File t = tc.createFile("temp.csv");
         FileIOUtils.overwriteFile(t.getAbsolutePath(), "");
@@ -182,7 +187,14 @@ public class FileImporterTest {
         assertEquals("strange_character_col_1", tc.getContext().getDatabase().getTableOrViewColumnNames("t").get(0));
     }
 
-//@Test
+    @Test
+    public void withDelimTest() {
+        tc.flush();
+        ProcessingResult pr = tc.processScript("t := test7.csv WITH delim(\";\")");
+        assertEquals(4, tc.db().count("t"));
+    }
+
+    //@Test
     public void temp() {
         tc.flush();
 

@@ -5,58 +5,139 @@
 </head>
 <body>
 <div id="menu">
-<br/><a href="#Assert">Assert</a>
-<br/><a href="#TableExpression">TableExpression</a>
-<br/><a href="#Definition">Definition</a>
-<br/><a href="#TableModification">TableModification</a>
-<br/><a href="#LeftOuter">LeftOuter</a>
-<br/><a href="#Count">Count</a>
-<br/><a href="#DefaultExit">DefaultExit</a>
-<br/><a href="#NativeSQL">NativeSQL</a>
-<br/><a href="#ListVariables">ListVariables</a>
-<br/><a href="#ChangeDirectory">ChangeDirectory</a>
-<br/><a href="#Statistics">Statistics</a>
-<br/><a href="#Export">Export</a>
-<br/><a href="#ExecuteExternalScript">ExecuteExternalScript</a>
-<br/><a href="#Match">Match</a>
 <br/><a href="#ListFiles">ListFiles</a>
+<br/><a href="#TableModification">TableModification</a>
+<br/><a href="#NativeSQL">NativeSQL</a>
+<br/><a href="#Export">Export</a>
+<br/><a href="#Statistics">Statistics</a>
+<br/><a href="#LeftOuter">LeftOuter</a>
+<br/><a href="#TableExpression">TableExpression</a>
+<br/><a href="#Assert">Assert</a>
+<br/><a href="#DefaultExit">DefaultExit</a>
+<br/><a href="#ListVariables">ListVariables</a>
 <br/><a href="#FrequencyDifference">FrequencyDifference</a>
+<br/><a href="#Count">Count</a>
+<br/><a href="#ExecuteExternalScript">ExecuteExternalScript</a>
 <br/><a href="#Map">Map</a>
-<br/><a href="#Variable">Variable</a></div><div id="main"><div class="interpreter">
-<a name="Assert"></a><h1>Assert</h1>
+<br/><a href="#Match">Match</a>
+<br/><a href="#Definition">Definition</a>
+<br/><a href="#Variable">Variable</a>
+<br/><a href="#ChangeDirectory">ChangeDirectory</a></div><div id="main"><div class="interpreter">
+<a name="ListFiles"></a><h1>ListFiles</h1>
 
- <p>
-     Compares a boilersuit expression against a value and takes
-     a specific action if the assertion is not true.
- </p>
- <p>
-     Any syntax or fatal error occurring during assertion will be handled as a
-     fatal error and the script will be stopped. Assertion will be automatically
-     false.
- </p>
+ <p>Displays a list of files in the working directory.</p>
+
  <h2>Syntax</h2>
- <p class="syntax">
-     <b>ASSERT</b> <i>{bs-expression}</i> <b>=</b> <i>{value}</i> <b>ELSE</b> <i>{action}</i>
- <p/>
- <p>
-     <span class="syntax"><i>{action}</i></span> may be may be either <span class="syntax"><b>STOP</b></span> or <span class="syntax"><b>WARN</b></span>
- </p>
+ <p class="syntax">ls</p>
 
- <h2>Special features</h2>
- <ul>
-     <li>If {bs-expression}'s result is a table or view, the first column of the first row will be compared to the expected value</li>
- </ul>
  <h2>Examples</h2>
  <pre>
- -- stop script if mytable has more or less than 3 rows
- ASSERT #mytable = 3 ELSE STOP;
- </pre>  <pre>
- -- the previous one is equivalent to...
- ASSERT SELECT COUNT(*) FROM mytable = 3 ELSE STOP
-  </pre>  <pre>
- -- ...but it could be anything (here we would check first col of first row):
- ASSERT mytable = 3 ELSE STOP
-  </pre>
+ ls
+ </pre> <pre>
+ ls.csv
+ </pre> <p/>
+ </div><div class="interpreter">
+<a name="TableModification"></a><h1>TableModification</h1>
+
+ <p>
+   Short notations for Creating/Dropping a table
+  </p>
+ <h2>Syntax</h2>
+ Create Table
+ <p class="syntax">
+ +tablename([!primary_key], attribute_1, ..., attribue_n);
+ </p>
+ Drop Table
+ <p class="syntax">
+ -tablename;
+ </p>
+ <h2>Examples</h2>
+   <pre>
+ +mytable(!id, attribute1, attribute2); -- create
+ -mytable; -- drop
+  </pre></p>
+ </div><div class="interpreter">
+<a name="NativeSQL"></a><h1>NativeSQL</h1>
+
+ <p>BoilerSuit understands a subset of the native SQL as long as it is understood by the underlying database system.</p>
+ <p>Currently, the following commands are supported:
+
+     <ul>
+         <li>SELECT</li>
+         <li>CREATE TABLE [AS]</li>
+         <li>DELETE</li>
+         <li>INSERT</li>
+         <li>UPDATE</li>
+     </ul>
+     </p>
+ <h2>Syntax</h2>
+ <p class="syntax">[result :=] sql-statement</p>
+ <h2>Samples</h2>
+ <pre>SELECT FROM mytable;</pre> FROM mytable WHERE x = 2;</pre>
+ </div><div class="interpreter">
+<a name="Export"></a><h1>Export</h1>
+
+ <p>
+ Exports tables into various supported file types, currently csv, xls, xlsx
+ <p/>
+ <h2>Syntax</h2>
+ variablename =: [filename [delim(delimcharacter)][quote(quotecharacter)][replacedelim(replacestring)][replacequote(replacestring)]]<br/>
+ Extensions will be interpreted as follows:
+ <ul>
+     <li>csv - exports as csv with default options</li>
+     <li>xls - exports as Microsoft (R) Excel 1997-2003</li>
+     <li>xlsx - exports as Microsoft (R) Excel</li>
+ </ul>
+ <h2>Samples</h2>
+ <pre>-- as simply as it can get - exports ALL variables
+ </pre> <pre>=:
+ </pre> <br/>
+ <pre>existing_table_name =: file_name.xml;
+ </pre> <pre>existing_table_name =: file_name.xls;
+ </pre> <pre>existing_table_name =: file_name.xlsx;
+ </pre> <pre>existing_table_name =: file_name.csv;
+ </pre> <pre>existing_table_name =: file_name.csv with delim(";"), quote("\'"), replacedelim(","), replacequote("_");
+ </pre> <h3>On the use of delim, quote, etc. (Simple)</h3>
+ <p>To export using ';' as a delimitator (instead of the default ','), you would use</p>
+ <pre>existing_table_name =: file_name.csv with delim(";")
+ </pre> <p>You could also use tabs, like so:</p>
+ <pre>existing_table_name =: file_name.csv with delim("\t")
+ </pre> <p>If you are in conflict with values using the desired symbols, use</p>
+ <pre>-- replace e.g. O'Brien by O\'Brien not to come in conflict with quotes '
+ </pre> <pre>existing_table_name =: file_name.csv with delim(";"), quote("'"), replacequote("\\'")
+ </pre> <h3>On the use of delim, quote, etc. (Advanced)</h3>
+ <ul>
+ <li>Argument of function delim() will be used as a delimitator to separate the strings in csv file.</li>
+ <li>Argument of function quote() will be used as a quote to wrap the strings in csv file.</li>
+ <li>Argument of function replacedelim() will be used for replace all of occurrences of delimitator in exported strings.</li>
+ <li>Argument of function replacequote() will be used for replace all of occurrences of quote in exported strings.</li>
+ </ul>
+ <p/>
+ </div><div class="interpreter">
+<a name="Statistics"></a><h1>Statistics</h1>
+
+ <p>Counts the occurrence of selected attribute in the table, shows if there are any duplicates.
+ <p/>
+ <h2>Syntax</h2>
+ <p class="syntax">?table_name(attribute)</p>
+ </div><div class="interpreter">
+<a name="LeftOuter"></a><h1>LeftOuter</h1>
+
+ <p>
+ Imagine you have mycompanies and allcompanies and you want to look up the allcompanies records for all mycompanies.
+ Some of the mycompanies will have allcompanies records corresponding, others won’t.
+ You want to see those that have, with all the extra information from allcompanies.
+ You want also to see those that do not have a correspondence at the same time.
+ <p/>
+ <p>A way to do this in SQL is a <b>left outer join</b>  This is what BS left outer
+ does for you:
+ </p>
+ <h2>Syntax</h2>
+ <p class="syntax">[result :=] left-table(left-key-attribute) <b>-></b> companylist(right-key-attribute);</p>
+ <h2>Examples</h2>
+ <pre>
+ exactmatch := ourcompanies(name)->companylist(name);
+ </pre> <p/>
  </div><div class="interpreter">
 <a name="TableExpression"></a><h1>TableExpression</h1>
 
@@ -159,74 +240,85 @@
  mytable(a,*)        -- equivalent to SELECT a,* FROM mytable
  </pre>
  </div><div class="interpreter">
-<a name="Definition"></a><h1>Definition</h1>
+<a name="Assert"></a><h1>Assert</h1>
 
  <p>
- The definition interpreter is probably the most frequently used in any BS script; it is used for two purposes:
- <ul>
-     <li>copy the result of an expression to a table</li>
-     <li>import a file into a table</li>
- </ul>
+     Compares a boilersuit expression against a value and takes
+     a specific action if the assertion is not true.
  </p>
  <p>
-     The expression can be on of the following:
-     <ul>
-         <li>the name of an other, existing table or view (which will be copied to the assignment table)</li>
-         <li>the result of a <a href="#TableExpression">TableExpression</a>, which is a special short notation for certain SQL queries</li>
-         <li>a native SQL query</li>
-         <li>in the case of an import, a filename with or without wildcards in it</li>
-     </ul>
+     Any syntax or fatal error occurring during assertion will be handled as a
+     fatal error and the script will be stopped. Assertion will be automatically
+     false.
  </p>
  <h2>Syntax</h2>
  <p class="syntax">
- <i>[new_table_name]</i><b>:=</b><i>filename</i> | <i>table-name</i> | <i>table-expression</i> | <i>native-sql-expression</i> | <i>wildcards</i>
- </p>
- <h2>Examples</h2>
- <pre>
- new_table_name := select from existing_table_name;     -- sql
- new_table_name := file.csv;                              -- import file
- := file.csv;                                             -- import file, give table name automatically (will be file_csv)
- := file*.csv;                                            -- import list of files
- :=                                                       -- import all files in directory (eq to :=)
- </pre>
- </div><div class="interpreter">
-<a name="TableModification"></a><h1>TableModification</h1>
-
- <p>
-   Short notations for Creating/Dropping a table
-  </p>
- <h2>Syntax</h2>
- Create Table
- <p class="syntax">
- +tablename([!primary_key], attribute_1, ..., attribue_n);
- </p>
- Drop Table
- <p class="syntax">
- -tablename;
- </p>
- <h2>Examples</h2>
-   <pre>
- +mytable(!id, attribute1, attribute2); -- create
- -mytable; -- drop
-  </pre></p>
- </div><div class="interpreter">
-<a name="LeftOuter"></a><h1>LeftOuter</h1>
-
- <p>
- Imagine you have mycompanies and allcompanies and you want to look up the allcompanies records for all mycompanies.
- Some of the mycompanies will have allcompanies records corresponding, others won’t.
- You want to see those that have, with all the extra information from allcompanies.
- You want also to see those that do not have a correspondence at the same time.
+     <b>ASSERT</b> <i>{bs-expression}</i> <b>=</b> <i>{value}</i> <b>ELSE</b> <i>{action}</i>
  <p/>
- <p>A way to do this in SQL is a <b>left outer join</b>  This is what BS left outer
- does for you:
+ <p>
+     <span class="syntax"><i>{action}</i></span> may be may be either <span class="syntax"><b>STOP</b></span> or <span class="syntax"><b>WARN</b></span>
  </p>
- <h2>Syntax</h2>
- <p class="syntax">[result :=] left-table(left-key-attribute) <b>-></b> companylist(right-key-attribute);</p>
+
+ <h2>Special features</h2>
+ <ul>
+     <li>If {bs-expression}'s result is a table or view, the first column of the first row will be compared to the expected value</li>
+ </ul>
  <h2>Examples</h2>
  <pre>
- exactmatch := ourcompanies(name)->companylist(name);
- </pre> <p/>
+ -- stop script if mytable has more or less than 3 rows
+ ASSERT #mytable = 3 ELSE STOP;
+ </pre>  <pre>
+ -- the previous one is equivalent to...
+ ASSERT SELECT COUNT(*) FROM mytable = 3 ELSE STOP
+  </pre>  <pre>
+ -- ...but it could be anything (here we would check first col of first row):
+ ASSERT mytable = 3 ELSE STOP
+  </pre>
+ </div><div class="interpreter">
+<a name="DefaultExit"></a><h1>DefaultExit</h1>
+
+ Closes the application.
+ <p/>
+ Usage:
+ exit
+ <p/>
+ </div><div class="interpreter">
+<a name="ListVariables"></a><h1>ListVariables</h1>
+
+ <p>Lists all tables</p>
+ <h2>Syntax</h2>
+ <p class="syntax">?</p>
+ </div><div class="interpreter">
+<a name="FrequencyDifference"></a><h1>FrequencyDifference</h1>
+
+ <p>
+     Analyse how often a value occurs accross two tables.
+ </p>
+ <h2>Syntax</h2>
+ <p class="syntax">[result := ]<i>left-table</i><b>.</b><i>left-attribute</i><b> ./. </b><i>right-table</i><b>.</b><i>right-attribute</i></p>
+ <h2>Example</h2>
+ <pre>
+  official.claim_id ./. previous.claim_id;
+ </pre> <p>
+     This will produce something like
+     <table>
+         <tr>
+             <th>claim_id_or_claim_id</th>
+             <th>official_count</th>
+             <th>previous_count</th>
+         </tr>
+         <tr>
+             <td>C123</td>
+             <td>100</td>
+             <td>50</td>
+         </tr>
+         <tr>
+             <td>C234</td>
+             <td>0</td>
+             <td>50</td>
+         </tr>
+     </table>
+ </p>
  </div><div class="interpreter">
 <a name="Count"></a><h1>Count</h1>
 
@@ -238,107 +330,6 @@
  <h2>Examples</h2>
  <p>
  <pre>#table;</pre> <pre>#mytable(attr1 like 'some value');</pre> <pre>#cars(serialnumber = 12345);</pre> </p>
- </div><div class="interpreter">
-<a name="DefaultExit"></a><h1>DefaultExit</h1>
-
- Closes the application.
- <p/>
- Usage:
- exit
- <p/>
- </div><div class="interpreter">
-<a name="NativeSQL"></a><h1>NativeSQL</h1>
-
- <p>BoilerSuit understands a subset of the native SQL as long as it is understood by the underlying database system.</p>
- <p>Currently, the following commands are supported:
-
-     <ul>
-         <li>SELECT</li>
-         <li>CREATE TABLE [AS]</li>
-         <li>DELETE</li>
-         <li>INSERT</li>
-         <li>UPDATE</li>
-     </ul>
-     </p>
- <h2>Syntax</h2>
- <p class="syntax">[result :=] sql-statement</p>
- <h2>Samples</h2>
- <pre>SELECT FROM mytable;</pre> FROM mytable WHERE x = 2;</pre>
- </div><div class="interpreter">
-<a name="ListVariables"></a><h1>ListVariables</h1>
-
- <p>Lists all tables</p>
- <h2>Syntax</h2>
- <p class="syntax">?</p>
- </div><div class="interpreter">
-<a name="ChangeDirectory"></a><h1>ChangeDirectory</h1>
-
- <p>
-  Change or prints out current working directory
- </p>
- <p>
-
- </p>
- <h2>Syntax</h2>
- <p>
-     CD {path};   -- to change directory
-     CD;          -- to print directory
- </p>
- <h2>Special features</h2>
- <p>
-     Depending on <b>operating system,</b> syntax of path may vary. On Windows, backslash
-     has been seen working; on linux slash.
- </p>
- <p>
-     After (successful) change of working directory, Boilersuit will automatically
-     open the data.db file as current database.
- </p>
- </div><div class="interpreter">
-<a name="Statistics"></a><h1>Statistics</h1>
-
- <p>Counts the occurrence of selected attribute in the table, shows if there are any duplicates.
- <p/>
- <h2>Syntax</h2>
- <p class="syntax">?table_name(attribute)</p>
- </div><div class="interpreter">
-<a name="Export"></a><h1>Export</h1>
-
- <p>
- Exports tables into various supported file types, currently csv, xls, xlsx
- <p/>
- <h2>Syntax</h2>
- variablename =: [filename [delim(delimcharacter)][quote(quotecharacter)][replacedelim(replacestring)][replacequote(replacestring)]]<br/>
- Extensions will be interpreted as follows:
- <ul>
-     <li>csv - exports as csv with default options</li>
-     <li>xls - exports as Microsoft (R) Excel 1997-2003</li>
-     <li>xlsx - exports as Microsoft (R) Excel</li>
- </ul>
- <h2>Samples</h2>
- <pre>-- as simply as it can get - exports ALL variables
- </pre> <pre>=:
- </pre> <br/>
- <pre>existing_table_name =: file_name.xml;
- </pre> <pre>existing_table_name =: file_name.xls;
- </pre> <pre>existing_table_name =: file_name.xlsx;
- </pre> <pre>existing_table_name =: file_name.csv;
- </pre> <pre>existing_table_name =: file_name.csv with delim(";"), quote("\'"), replacedelim(","), replacequote("_");
- </pre> <h3>On the use of delim, quote, etc. (Simple)</h3>
- <p>To export using ';' as a delimitator (instead of the default ','), you would use</p>
- <pre>existing_table_name =: file_name.csv with delim(";")
- </pre> <p>You could also use tabs, like so:</p>
- <pre>existing_table_name =: file_name.csv with delim("\t")
- </pre> <p>If you are in conflict with values using the desired symbols, use</p>
- <pre>-- replace e.g. O'Brien by O\'Brien not to come in conflict with quotes '
- </pre> <pre>existing_table_name =: file_name.csv with delim(";"), quote("'"), replacequote("\\'")
- </pre> <h3>On the use of delim, quote, etc. (Advanced)</h3>
- <ul>
- <li>Argument of function delim() will be used as a delimitator to separate the strings in csv file.</li>
- <li>Argument of function quote() will be used as a quote to wrap the strings in csv file.</li>
- <li>Argument of function replacedelim() will be used for replace all of occurrences of delimitator in exported strings.</li>
- <li>Argument of function replacequote() will be used for replace all of occurrences of quote in exported strings.</li>
- </ul>
- <p/>
  </div><div class="interpreter">
 <a name="ExecuteExternalScript"></a><h1>ExecuteExternalScript</h1>
 
@@ -353,6 +344,32 @@
  <h2>Example</h2>
  execute("scriptname.bs")
  <p/>
+ </div><div class="interpreter">
+<a name="Map"></a><h1>Map</h1>
+
+ <p>
+     To map all occurences of a value in a specific attribute of a table to a target value as defined
+     in the mapping
+ <p/>
+ <h2>Syntax</h2>
+ <p class="syntax">
+ <b>MAP</b> <i>table</i><b>(</b><i>>attribute</i><b>)</b> <b>USE</b> <i>mapping</i>
+ </p>
+ <p>
+     where mapping is a table with columns <i>source</i> and <i>target</i>
+ </p>
+
+ <h2>Example</h2>
+ <pre>
+ MAP cars(cartype) USE mapping
+ </pre> <p>
+ Mapping table should look like:
+ "source", "target"
+ "mercedes", "Boring_German_Car"
+ "lada", "Racing_Machine"
+ All occurrences of value 'mercedes' in <i>cartype</i>will be replaced with 'Boring_German_Car' and all occurrences of value
+ 'lada' will be replaced by 'Racing_Machine'.
+ </p>
  </div><div class="interpreter">
 <a name="Match"></a><h1>Match</h1>
 
@@ -416,76 +433,40 @@
  THRESHOLD is used for different fuzzy match strategies, such as Jaro, Dice etc.
  <p/>
  </div><div class="interpreter">
-<a name="ListFiles"></a><h1>ListFiles</h1>
-
- <p>Displays a list of files in the working directory.</p>
-
- <h2>Syntax</h2>
- <p class="syntax">ls</p>
-
- <h2>Examples</h2>
- <pre>
- ls
- </pre> <pre>
- ls.csv
- </pre> <p/>
- </div><div class="interpreter">
-<a name="FrequencyDifference"></a><h1>FrequencyDifference</h1>
+<a name="Definition"></a><h1>Definition</h1>
 
  <p>
-     Analyse how often a value occurs accross two tables.
+ The definition interpreter is probably the most frequently used in any BS script; it is used for two purposes:
+ <ul>
+     <li>copy the result of an expression to a table</li>
+     <li>import a file into a table</li>
+ </ul>
  </p>
- <h2>Syntax</h2>
- <p class="syntax">[result := ]<i>left-table</i><b>.</b><i>left-attribute</i><b> ./. </b><i>right-table</i><b>.</b><i>right-attribute</i></p>
- <h2>Example</h2>
- <pre>
-  official.claim_id ./. previous.claim_id;
- </pre> <p>
-     This will produce something like
-     <table>
-         <tr>
-             <th>claim_id_or_claim_id</th>
-             <th>official_count</th>
-             <th>previous_count</th>
-         </tr>
-         <tr>
-             <td>C123</td>
-             <td>100</td>
-             <td>50</td>
-         </tr>
-         <tr>
-             <td>C234</td>
-             <td>0</td>
-             <td>50</td>
-         </tr>
-     </table>
- </p>
- </div><div class="interpreter">
-<a name="Map"></a><h1>Map</h1>
-
  <p>
-     To map all occurences of a value in a specific attribute of a table to a target value as defined
-     in the mapping
- <p/>
+     The expression can be on of the following:
+     <ul>
+         <li>the name of an other, existing table or view (which will be copied to the assignment table)</li>
+         <li>the result of a <a href="#TableExpression">TableExpression</a>, which is a special short notation for certain SQL queries</li>
+         <li>a native SQL query</li>
+         <li>in the case of an import, a filename with or without wildcards in it</li>
+     </ul>
+ </p>
  <h2>Syntax</h2>
  <p class="syntax">
- <b>MAP</b> <i>table</i><b>(</b><i>>attribute</i><b>)</b> <b>USE</b> <i>mapping</i>
+ <i>[new_table_name]</i><b>:=</b><i>filename</i> | <i>table-name</i> | <i>table-expression</i> | <i>native-sql-expression</i> | <i>wildcards</i> [with-clause]
  </p>
+ <h3>WITH Clauses</h3>
  <p>
-     where mapping is a table with columns <i>source</i> and <i>target</i>
- </p>
-
- <h2>Example</h2>
+ <pre>WITH delim([delim])</pre> </p>
+ <h2>Examples</h2>
  <pre>
- MAP cars(cartype) USE mapping
- </pre> <p>
- Mapping table should look like:
- "source", "target"
- "mercedes", "Boring_German_Car"
- "lada", "Racing_Machine"
- All occurrences of value 'mercedes' in <i>cartype</i>will be replaced with 'Boring_German_Car' and all occurrences of value
- 'lada' will be replaced by 'Racing_Machine'.
- </p>
+ new_table_name := select from existing_table_name;     -- sql
+ new_table_name := file.csv;                              -- import file
+ := file.csv;                                             -- import file, give table name automatically (will be file_csv)
+ := file*.csv;                                            -- import list of files
+ :=                                                       -- import all files in directory (eq to :=)
+ := file.csv WITH delim(',')                              -- import file.csv assuming the delimitor is ,
+ </pre>
  </div><div class="interpreter">
 <a name="Variable"></a><h1>Variable</h1>
 
@@ -494,5 +475,28 @@
  Usage:
  variable_name
  <p/>
+ </div><div class="interpreter">
+<a name="ChangeDirectory"></a><h1>ChangeDirectory</h1>
+
+ <p>
+  Change or prints out current working directory
+ </p>
+ <p>
+
+ </p>
+ <h2>Syntax</h2>
+ <p>
+     CD {path};   -- to change directory
+     CD;          -- to print directory
+ </p>
+ <h2>Special features</h2>
+ <p>
+     Depending on <b>operating system,</b> syntax of path may vary. On Windows, backslash
+     has been seen working; on linux slash.
+ </p>
+ <p>
+     After (successful) change of working directory, Boilersuit will automatically
+     open the data.db file as current database.
+ </p>
  </div></div></body>
 </html>

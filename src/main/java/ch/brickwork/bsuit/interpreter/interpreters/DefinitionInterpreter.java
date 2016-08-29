@@ -29,7 +29,11 @@ import java.util.List;
  * </p>
  * <h2>Syntax</h2>
  * <p class="syntax">
- * <i>[new_table_name]</i><b>:=</b><i>filename</i> | <i>table-name</i> | <i>table-expression</i> | <i>native-sql-expression</i> | <i>wildcards</i>
+ * <i>[new_table_name]</i><b>:=</b><i>filename</i> | <i>table-name</i> | <i>table-expression</i> | <i>native-sql-expression</i> | <i>wildcards</i> [with-clause]
+ * </p>
+ * <h3>WITH Clauses</h3>
+ * <p>
+ * <pre>WITH delim([delim])</pre> can be used to pre-define the delimitor. If not indicated, the delim is automatically recognized based on frequency analysis
  * </p>
  * <h2>Examples</h2>
  * <pre>
@@ -38,6 +42,7 @@ import java.util.List;
  * := file.csv;                                             -- import file, give table name automatically (will be file_csv)
  * := file*.csv;                                            -- import list of files
  * :=                                                       -- import all files in directory (eq to := *)
+ * := file.csv WITH delim(',')                              -- import file.csv assuming the delimitor is ,
  * </pre>
  */
 public class DefinitionInterpreter extends AbstractInterpreter {
@@ -50,6 +55,8 @@ public class DefinitionInterpreter extends AbstractInterpreter {
     private final IDatabase database = context.getDatabase();
 
     private String encoding;
+
+    private String delim;
 
     public DefinitionInterpreter(final String command, final IBoilersuitApplicationContext context)
     {
@@ -149,6 +156,9 @@ public class DefinitionInterpreter extends AbstractInterpreter {
                     encoding = null;
                 else
                     encoding = encodings.get(0);
+
+                if(wcp.getArgumentsIgnoreCase("delim") != null)
+                    delim = wcp.getArgumentsIgnoreCase("delim").get(0);
             }
 
             // cut off parameters for further processing
@@ -200,7 +210,7 @@ public class DefinitionInterpreter extends AbstractInterpreter {
         String resultVariableName = null;
         if (file.isFile()) {
             FileLoader fl = new FileLoader(database, context);
-            resultVariableName = fl.loadFile(varName, "", file, encoding);
+            resultVariableName = fl.loadFile(varName, "", file, encoding, delim);
         }
         return resultVariableName;
     }

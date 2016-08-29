@@ -73,9 +73,10 @@ public class FileImporter implements Iterable<Record> {
      * @param file     - file without path
      * @param encoding
      */
-    public FileImporter(File file, String encoding, IBoilersuitApplicationContext context) {
+    public FileImporter(File file, String encoding, String delim, IBoilersuitApplicationContext context) {
         this.file = file;
         this.encoding = encoding;
+        this.commaDelimitator = delim;
         this.context = context;
         init();
     }
@@ -219,50 +220,53 @@ public class FileImporter implements Iterable<Record> {
 
         rowCount = 0;
 
-        BufferedReader br = new BufferedReader(openStream());
+        if(commaDelimitator == null) {
 
-        double[] sum = new double[DELIMITERS.length];
-        int n = 0;
-        try {
-            for (int i = 0; br.ready() && i < 100; i++) {
-                String l = br.readLine();
-                if(!l.trim().equals("")) {
-                    n++;
+            BufferedReader br = new BufferedReader(openStream());
 
-                    // accumulate est. variance sum for each delimitor
-                    for (int delimIndex = 0; delimIndex < DELIMITERS.length; delimIndex++) {
-                        int count = TextUtils.count(l, DELIMITERS[delimIndex]);
-                        sum[delimIndex] += count;
+            double[] sum = new double[DELIMITERS.length];
+            int n = 0;
+            try {
+                for (int i = 0; br.ready() && i < 100; i++) {
+                    String l = br.readLine();
+                    if (!l.trim().equals("")) {
+                        n++;
+
+                        // accumulate est. variance sum for each delimitor
+                        for (int delimIndex = 0; delimIndex < DELIMITERS.length; delimIndex++) {
+                            int count = TextUtils.count(l, DELIMITERS[delimIndex]);
+                            sum[delimIndex] += count;
+                        }
                     }
                 }
-            }
 
-            // calculate est. variance
-            double bestScore = 0;
-            int bestDelim = -1;
-            int numGreaterThanThreshold = 0;
-            for (int delimIndex = 0; delimIndex < DELIMITERS.length; delimIndex++) {
-                double thisScore = (sum[delimIndex] / n);
-                if (thisScore > bestScore) {
-                    bestScore = thisScore;
-                    bestDelim = delimIndex;
+                // calculate est. variance
+                double bestScore = 0;
+                int bestDelim = -1;
+                int numGreaterThanThreshold = 0;
+                for (int delimIndex = 0; delimIndex < DELIMITERS.length; delimIndex++) {
+                    double thisScore = (sum[delimIndex] / n);
+                    if (thisScore > bestScore) {
+                        bestScore = thisScore;
+                        bestDelim = delimIndex;
+                    }
+
+                    if (thisScore > GOOD_AVERAGE_COUNT_FOR_DELIMITATOR) numGreaterThanThreshold++;
+
+                    context.getLog().log("Checking " + DELIMITERS[delimIndex] + " delimitor: found " + (sum[delimIndex] / n) + " av.");
                 }
 
-                if(thisScore > GOOD_AVERAGE_COUNT_FOR_DELIMITATOR)
-                    numGreaterThanThreshold++;
+                commaDelimitator = DELIMITERS[bestDelim];
+                context.getLog().log("Winning: " + DELIMITERS[bestDelim]);
 
-                context.getLog().log("Checking " + DELIMITERS[delimIndex] + " delimitor: found " + (sum[delimIndex] / n) + " av.");
+                if (numGreaterThanThreshold > 1) {
+                    context.getLog().warn("Could not automatically detect delimitator in " + file.getName() + ", please set manually");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-
-            commaDelimitator = DELIMITERS[bestDelim];
-            context.getLog().log("Winning: " + DELIMITERS[bestDelim]);
-
-            if(numGreaterThanThreshold > 1) {
-                context.getLog().warn("Could not automatically detect delimitator in " + file.getName() + ", please set manually");
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        } else {
+            context.getLog().info("Using pre-defined comma delimitor " + commaDelimitator);
         }
 
         reader = new CSVReader(openStream(), commaDelimitator.charAt(0));
