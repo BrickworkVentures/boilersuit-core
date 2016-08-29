@@ -20,7 +20,7 @@ import java.util.List;
  */
 public class DefaultCommandInterpreter extends AbstractInterpreter implements ICommandInterpreter {
 
-    public static final String CORE_VERSION = "1.0.5 (050716)";
+    public static final String CORE_VERSION = "1.0.6 (280816)";
 
     private List<IInterpreter> interpreters = new ArrayList<>();
 
