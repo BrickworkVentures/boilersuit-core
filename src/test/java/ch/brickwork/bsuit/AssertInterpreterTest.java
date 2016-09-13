@@ -30,40 +30,49 @@ public class AssertInterpreterTest {
         tc.flush();
         String script = "ASSERT #carowners = 4 ELSE WARN";
         ProcessingResult pr = tc.processScript(script);
-        assertEquals("true", pr.getSingleValue());
-        assertEquals(true, pr.getResultSummary().contains("PASSED"));
-        assertEquals(true, pr.getScript().contains(script));    // contains because it may add ';', which is ok
-        assertEquals(0, tc.getTestLog().getErrLog().size());
-        assertEquals(true, tc.getTestLog().isMentionedInInfoLog("PASSED"));
+        assertEquals("(1a)", "true", pr.getSingleValue());
+        assertEquals("(1b)", true, pr.getResultSummary().contains("PASSED"));
+        assertEquals("(1c)", true, pr.getScript().contains(script));    // contains because it may add ';', which is ok
+        assertEquals("(1d)", 0, tc.getTestLog().getErrLog().size());
+        assertEquals("(1e)", true, tc.getTestLog().isMentionedInInfoLog("PASSED"));
         tc.flush();
 
         tc.flush();
         script = "ASSERT #carowners = 3 ELSE WARN";
         pr = tc.processScript(script);
-        assertEquals("false", pr.getSingleValue());
-        assertEquals(true, pr.getResultSummary().contains("FAILED"));
-        assertEquals(true, pr.getScript().contains(script));    // contains because it may add ';', which is ok
-        assertEquals(0, tc.getTestLog().getErrLog().size());
-        assertEquals(true, tc.getTestLog().isMentionedInInfoLog("FAILED"));
-        assertEquals(true, tc.getTestLog().isMentionedInWarnLog("FAILED"));
+        assertEquals("(2a)", "false", pr.getSingleValue());
+        assertEquals("(2b)", true, pr.getResultSummary().contains("FAILED"));
+        assertEquals("(2c)", true, pr.getScript().contains(script));    // contains because it may add ';', which is ok
+        assertEquals("(2d)", 0, tc.getTestLog().getErrLog().size());
+        assertEquals("(2e)", true, tc.getTestLog().isMentionedInInfoLog("FAILED"));
+        assertEquals("(2f)", true, tc.getTestLog().isMentionedInWarnLog("FAILED"));
 
         tc.flush();
         script = "ASSERT #carowners = 3 ELSE STOP";
         pr = tc.processScript(script);
-        assertEquals("false", pr.getSingleValue());
-        assertEquals(true, pr.getResultSummary().contains("FAILED"));
-        assertEquals(true, pr.getScript().contains(script));    // contains because it may add ';', which is ok
-        assertEquals(true, tc.getTestLog().isMentionedInInfoLog("FAILED"));
+        assertEquals("(3a)", "false", pr.getSingleValue());
+        assertEquals("(3b)", true, pr.getResultSummary().contains("FAILED"));
+        assertEquals("(3c)", true, pr.getScript().contains(script));    // contains because it may add ';', which is ok
+        assertEquals("(3d)", true, tc.getTestLog().isMentionedInInfoLog("FAILED"));
 
 
         tc.flush();
         script = "ASSERT SELECT COUNT(*) FROM carowners = 3 ELSE STOP";
         pr = tc.processScript(script);
-        assertEquals("false", pr.getSingleValue());
-        assertEquals(true, pr.getResultSummary().contains("FAILED"));
-        assertEquals(true, pr.getScript().contains(script));    // contains because it may add ';', which is ok
-        assertEquals(true, tc.getTestLog().isMentionedInInfoLog("FAILED"));
+        assertEquals("(4a)", "false", pr.getSingleValue());
+        assertEquals("(4b)", true, pr.getResultSummary().contains("FAILED"));
+        assertEquals("(4c)", true, pr.getScript().contains(script));    // contains because it may add ';', which is ok
+        assertEquals("(4d)", true, tc.getTestLog().isMentionedInInfoLog("FAILED"));
 
+        tc.flush();
+        tc.processScript("co := carowners");
+        script = "ASSERT #carowners = #co ELSE STOP";
+        pr = tc.processScript(script);
+        assertEquals("(5a)", "true", pr.getSingleValue());
+        assertEquals("(5b)", true, pr.getResultSummary().contains("PASSED"));
+        assertEquals("(5c)", true, pr.getScript().contains(script));    // contains because it may add ';', which is ok
+        assertEquals("(5d)", 0, tc.getTestLog().getErrLog().size());
+        assertEquals("(5e)", true, tc.getTestLog().isMentionedInInfoLog("PASSED"));
     }
 
     @AfterClass

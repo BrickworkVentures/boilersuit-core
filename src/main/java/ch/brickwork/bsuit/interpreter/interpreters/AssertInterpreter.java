@@ -84,12 +84,19 @@ public class AssertInterpreter extends AbstractInterpreter {
     @Override
     public boolean needsTargetVariable() { return false; }
 
+    /**
+     *
+     * @return list of interpreters "charged" with the command string, OR null, if none of the interpreters understands the command
+     */
     public List<IInterpreter> getInterpreters(String command) {
         final List<IInterpreter> interpreters = new ArrayList<>();
         interpreters.add(new CountInterpreter(getTargetVariable(), command, context));
         interpreters.add(new NativeSQLInterpreter(getTargetVariable(), command, context));
         interpreters.add(new TableExpressionInterpreter(getTargetVariable(), command, context));
-        return interpreters;
+        for(IInterpreter i : interpreters)
+            if(i.understands())
+                return interpreters;
+        return null;
     }
 
     @Override
@@ -102,61 +109,80 @@ public class AssertInterpreter extends AbstractInterpreter {
     }
 
     public ProcessingResult processEqualsOperator() {
-        final List<IInterpreter> interpreters = getInterpreters(boilerSuitCommand);
-        final ProcessingResult processingResult = new ScriptProcessor(context).processScript(boilerSuitCommand, interpreters, null);
+        // check whether at least one of the interpreters can interpret the expression; if yes, this
+        // means it is a BS expression like #xy rather than a constant value. In this case, interpret
+        // the expression, otherwise create a "mockup" processing result carrying the constant value
+        // as a single value:
+        final ProcessingResult leftResult;
+        final List<IInterpreter> leftHandInterpreters = getInterpreters(boilerSuitCommand);
+        if(leftHandInterpreters != null)
+            leftResult = new ScriptProcessor(context).processScript(boilerSuitCommand, leftHandInterpreters, null);
+        else
+            leftResult = new ProcessingResult(ProcessingResult.ResultType.MESSAGE, boilerSuitCommand, boilerSuitCommand, boilerSuitCommand);
 
-        String realResult = "N/A";
-        boolean assertionTrue;
-        switch (processingResult.getType()) {
+        // same here, for right side:
+        final ProcessingResult rightResult;
+        final List<IInterpreter> rightHandInterpreters = getInterpreters(expectedResult);
+        if(rightHandInterpreters != null)
+            rightResult = new ScriptProcessor(context).processScript(expectedResult, rightHandInterpreters, null);
+        else
+            rightResult = new ProcessingResult(ProcessingResult.ResultType.MESSAGE, expectedResult, expectedResult, expectedResult);
+
+
+        String leftRealResult = getRelevantValueForComparison(leftResult);
+        String rightRealResult = getRelevantValueForComparison(rightResult);
+
+        if(leftRealResult != null && rightRealResult != null) {
+            if (compare(leftRealResult, rightRealResult)) {
+                context.getLog().info(assertionInfo + " PASSED");
+                return new ProcessingResult(ProcessingResult.ResultType.MESSAGE, assertionInfo + " " + "PASSED" + " (" + leftRealResult + " <> " + rightRealResult + ")", script, TRUE_SINGLE_VALUE);
+            } else {
+                context.getLog().info(assertionInfo + " FAILED");
+                return performElseAction(assertionInfo + " " + "FAILED" + " (" + leftRealResult + " <> " + rightRealResult + ")", action);
+            }
+        }
+
+        return new ProcessingResult(ProcessingResult.ResultType.FATAL_ASSERT, "Problem in assertion!", null);
+    }
+
+
+    private String getRelevantValueForComparison(ProcessingResult pr) {
+        String realResult = null;
+        switch (pr.getType()) {
             case MESSAGE:
-                realResult = processingResult.getSingleValue();
+                realResult = pr.getSingleValue();
                 if(realResult == null)
-                    realResult = processingResult.getResultSummary();
-                assertionTrue = compare(expectedResult, realResult);
+                    realResult = pr.getResultSummary();
                 break;
             case COMPOSITE:
                 context.getLog().warn("Assert cannot be used with composite results! We let it fail.");
-                assertionTrue = false;
                 break;
             case FATAL_ERROR:
-                context.getLog().err("Fatal error during assertion (which will fail): " + assertionInfo + ". Error: " + processingResult.getResultSummary());
-                assertionTrue = false;
+                context.getLog().err("Fatal error during assertion (which will fail): " + assertionInfo + ". Error: " + pr.getResultSummary());
                 break;
             case SYNTAX_ERROR:
                 context.getLog().err("Wrong syntax in assertion value " + boilerSuitCommand);
-                assertionTrue = false;
                 break;
             case TABLE:
             case VIEW:
-                final List<Record> recordList = context.getDatabase().getAllRecordsFromTableOrView(processingResult.getResultSummary(), null, null);
+                final List<Record> recordList = context.getDatabase().getAllRecordsFromTableOrView(pr.getResultSummary(), null, null);
                 if (recordList != null) {
                     if (recordList.size() > 0) {
                         final Record record = recordList.get(0);
                         realResult = (String) record.getFirstValueContent();
-                        assertionTrue = expectedResult.equals(realResult);
                     } else {
-                        assertionTrue = false;
                         context.getLog().warn("Assert on table or view with empty set!");
                     }
                 } else {
                     context.getLog().err("Assert on table or view but table or view not found!");
-                    assertionTrue = false;
                 }
                 break;
             default:
                 assertionInfo = "N/A";
-                assertionTrue = false;
                 context.getLog().err("Internal error - type of processing result not supported by assert interpreter");
         }
 
-        if (assertionTrue) {
-            context.getLog().info(assertionInfo + " PASSED");
-            return new ProcessingResult(ProcessingResult.ResultType.MESSAGE, assertionInfo + " " + "PASSED" + " (result: " + realResult + ")", script, TRUE_SINGLE_VALUE);
-        }
-
-        // else
-        context.getLog().info(assertionInfo + " FAILED");
-        return performElseAction(assertionInfo + " " + "FAILED" + " (result: " + realResult + ")", action);
+        return realResult;
     }
 
     /**
