@@ -111,21 +111,21 @@ public class FileImporterTest {
     public void wildCardAsterixTest() {
         ProcessingResult pr = tc.processScript(":= test*.csv;");
         tc.getTestLog().log(pr.getResultSummary());
-        assertEquals("wa1", "1", tc.processScript("#test1_csv").getSingleValue());
-        assertEquals("wa2", "1", tc.processScript("#test2_csv").getSingleValue());
-        assertEquals("wa3", "1", tc.processScript("#test3_csv").getSingleValue());
+        assertEquals("wa1", "1", tc.processScript("#test1").getSingleValue());
+        assertEquals("wa2", "1", tc.processScript("#test2").getSingleValue());
+        assertEquals("wa3", "1", tc.processScript("#test3").getSingleValue());
 
         flush();
-        pr = tc.processScript("-test1_csv;-test2_csv;-test3_csv;");
+        pr = tc.processScript("-test1;-test2;-test3;");
         pr = tc.processScript(":= *.csv");
-        assertEquals("wa4", "1", tc.processScript("#test1_csv").getSingleValue());
-        assertEquals("wa5", "1", tc.processScript("#test2_csv").getSingleValue());
-        assertEquals("wa6", "1", tc.processScript("#test3_csv").getSingleValue());
+        assertEquals("wa4", "1", tc.processScript("#test1").getSingleValue());
+        assertEquals("wa5", "1", tc.processScript("#test2").getSingleValue());
+        assertEquals("wa6", "1", tc.processScript("#test3").getSingleValue());
 
         flush();
-        pr = tc.processScript("-test1_csv");
+        pr = tc.processScript("-test1");
         pr = tc.processScript(":= test1.csv");
-        assertEquals("1", tc.processScript("#test1_csv").getSingleValue());
+        assertEquals("1", tc.processScript("#test1").getSingleValue());
     }
 
     @Test

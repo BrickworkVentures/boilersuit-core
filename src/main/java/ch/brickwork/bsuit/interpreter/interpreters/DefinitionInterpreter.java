@@ -115,7 +115,7 @@ public class DefinitionInterpreter extends AbstractInterpreter {
             final String fileName = file.getName();
 
             if (filesLength != 1 || varName.isEmpty()) {
-                varName = fileName.replaceAll("\\W", "_");
+                varName = fileName.replaceAll("\\.[a-zA-Z0-9]+", "").replaceAll("\\W", "_");
             }
 
             context.getDatabase().createOrReplaceVariable(varName, fileName, fileName);
